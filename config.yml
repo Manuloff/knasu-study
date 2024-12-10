@@ -1,7 +1,0 @@
-telegramToken: '6428390907:AAGDLgBtGcM0Wx6pZyCmeaLg8OzP_JGltQ0'
-
-database:
-    host: 'localhost:3306'
-    username: 'root'
-    password: 'Tuborgus216'
-    database: 'knasu'
