@@ -17,15 +17,15 @@ import java.util.*;
  */
 @ToString
 @EqualsAndHashCode
-public final class StudyGroups {
+public final class GroupsResponse {
 
 	private final Map<String, Faculty> facultyByName = new LinkedHashMap<>();
-	private final Map<String, String> urlByGroup = new LinkedHashMap<>();
+	private final Map<String, UUID> groupIdByGroupName = new LinkedHashMap<>();
 
-	public StudyGroups(@NonNull Document document) {
+	public GroupsResponse(@NonNull Document document) {
 		for (Element elementFaculty : document.body().select("div.faculty")) {
-			String abbreviation = Objects.requireNonNull(elementFaculty.select("div.faculty a").first()).attr("name");
-			String name = Objects.requireNonNull(elementFaculty.select("div.faculty h4").first()).text();
+			String facultyAbbreviation = Objects.requireNonNull(elementFaculty.select("div.faculty a").first()).attr("name");
+			String facultyName = Objects.requireNonNull(elementFaculty.select("div.faculty h4").first()).text();
 
 			Map<String, List<String>> map = new LinkedHashMap<>();
 
@@ -38,15 +38,15 @@ public final class StudyGroups {
 				map.put(year, groups);
 
 				for (Element link : Objects.requireNonNull(columns.get(1).select("td.sectiontableentry1").first()).select("a")) {
-					String url = "https://knastu.ru/" + link.attr("href");
-					String group = link.text();
+					UUID groupId = UUID.fromString(link.attr("href").split("/")[3]);
+					String groupName = link.text();
 
-					this.urlByGroup.put(group, url);
-					groups.add(group);
+					this.groupIdByGroupName.put(groupName, groupId);
+					groups.add(groupName);
 				}
 			}
 
-			this.facultyByName.put(abbreviation, new Faculty(abbreviation, name, map));
+			this.facultyByName.put(facultyAbbreviation, new Faculty(facultyAbbreviation, facultyName, map));
 		}
 	}
 
@@ -77,12 +77,12 @@ public final class StudyGroups {
 
 	@NonNull
 	public List<String> getAllGroups() {
-		return new ArrayList<>(this.urlByGroup.keySet());
+		return new ArrayList<>(this.groupIdByGroupName.keySet());
 	}
 
 	@Nullable
-	public String getUrlByGroup(@NonNull String groupName) {
-		return this.urlByGroup.getOrDefault(groupName, null);
+	public UUID getGroupIdByGroupName(@NonNull String groupName) {
+		return this.groupIdByGroupName.getOrDefault(groupName, null);
 	}
 
 	@EqualsAndHashCode

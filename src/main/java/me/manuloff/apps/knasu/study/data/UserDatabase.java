@@ -1,5 +1,6 @@
 package me.manuloff.apps.knasu.study.data;
 
+import lombok.Locked;
 import lombok.NonNull;
 import me.saharnooby.lib.query.orm.DataClass;
 
@@ -24,6 +25,8 @@ public final class UserDatabase {
 	}
 
 	@NonNull
+	@Locked.Write
+	@Locked.Read
 	public UserData loadOrCreate(long userId) throws SQLException {
 		Optional<UserData> opt = DAO.selectBy(userId).queryAndMap(this.source, DAO);
 
@@ -37,6 +40,7 @@ public final class UserDatabase {
 		return opt.get();
 	}
 
+	@Locked.Write
 	public void update(@NonNull UserData data, @NonNull String... fieldNames) throws SQLException {
 		DAO.update(data, fieldNames).update(this.source);
 	}

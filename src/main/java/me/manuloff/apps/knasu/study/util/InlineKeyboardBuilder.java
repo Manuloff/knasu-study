@@ -44,7 +44,28 @@ public class InlineKeyboardBuilder {
 			markup.addRow(buttons.toArray(new InlineKeyboardButton[0]));
 		}
 
-		System.out.println("markup = " + markup);
+		return markup;
+	}
+
+	public static InlineKeyboardMarkup pretty(@NonNull List<InlineKeyboardButton> buttons, int rowSize) {
+		if (rowSize < 1) throw new RuntimeException();
+
+		InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
+
+		List<InlineKeyboardButton> row = new LinkedList<>();
+
+		for (InlineKeyboardButton button : buttons) {
+			row.add(button);
+
+			if (row.size() == rowSize) {
+				markup.addRow(row.toArray(new InlineKeyboardButton[0]));
+				row.clear();
+			}
+		}
+
+		if (!row.isEmpty()) {
+			markup.addRow(row.toArray(new InlineKeyboardButton[0]));
+		}
 
 		return markup;
 	}
