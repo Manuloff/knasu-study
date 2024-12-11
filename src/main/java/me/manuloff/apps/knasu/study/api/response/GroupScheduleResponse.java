@@ -63,27 +63,32 @@ public class GroupScheduleResponse {
 				DailySchedule dailySchedule = this.dailySchedules.get(i - 1);
 
 				// Если этот элемент существует внутри колонки, то пара есть, иначе нет.
-				Element element = column.selectFirst("div.table-print-inner-event.col-sm-12.col-md-12");
-				if (element == null) {
+				Elements elements = column.select("div.table-print-inner-event.col-sm-12.col-md-12");
+				if (elements.isEmpty()) {
 					dailySchedule.lessons.add(null);
 					continue;
 				}
 
-				String additionalInfo = element.select("i").text();
+				Lesson lesson = new Lesson(startTime, endTime);
+				dailySchedule.lessons.add(lesson);
 
-				Element subject = element.select("b").first();
-				assert subject != null;
+				for (Element element : elements) {
+					String additionalInfo = element.select("i").text();
 
-				String fullName = subject.attr("title");
-				String shortName = subject.text();
+					Element subject = element.select("b").first();
+					assert subject != null;
 
-				String type = element.textNodes().get(0).text();
+					String fullName = subject.attr("title");
+					String shortName = subject.text();
 
-				String teacher = Objects.requireNonNull(element.selectFirst("a")).text();
+					String type = element.textNodes().get(0).text();
 
-				String venue = element.select("b").get(1).text();
+					String teacher = Objects.requireNonNull(element.selectFirst("a")).text();
 
-				dailySchedule.lessons.add(new Lesson(startTime, endTime, additionalInfo.isEmpty() ? null : additionalInfo, shortName, fullName, type, teacher, venue));
+					String venue = element.select("b").get(1).text();
+
+					lesson.lessonInfos.add(new LessonInfo(startTime, endTime, additionalInfo.isEmpty() ? null : additionalInfo, shortName, fullName, type, teacher, venue));
+				}
 			}
 		}
 	}
@@ -123,24 +128,57 @@ public class GroupScheduleResponse {
 		private final List<Lesson> lessons = new LinkedList<>();
 	}
 
-	@Getter
 	public static class Lesson extends LessonTime {
 
-		public Lesson(@NonNull String startTime,
-					  @NonNull String endTime,
-					  @Nullable String additionalInfo,
-					  @NonNull String shortName,
-					  @NonNull String fullName,
-					  @NonNull String type,
-					  @NonNull String teacher,
-					  @NonNull String location) {
+		@NonNull
+		private final List<LessonInfo> lessonInfos = new LinkedList<>();
+
+		public Lesson(@NonNull String startTime, @NonNull String endTime) {
+			super(startTime, endTime);
+		}
+
+		public boolean isParallelLesson() {
+			return this.lessonInfos.size() > 1;
+		}
+
+		public boolean isSingleLesson() {
+			return this.lessonInfos.size() == 1;
+		}
+
+		@NonNull
+		public LessonInfo getFirst() {
+			return this.get(0);
+		}
+
+		@NonNull
+		public LessonInfo get(int index) {
+			return this.lessonInfos.get(index);
+		}
+
+		@NonNull
+		public List<LessonInfo> getLessons() {
+			return Collections.unmodifiableList(this.lessonInfos);
+		}
+	}
+
+	@Getter
+	public static class LessonInfo extends LessonTime {
+
+		public LessonInfo(@NonNull String startTime,
+						  @NonNull String endTime,
+						  @Nullable String additionalInfo,
+						  @NonNull String shortName,
+						  @NonNull String fullName,
+						  @NonNull String type,
+						  @NonNull String teacher,
+						  @NonNull String venue) {
 			super(startTime, endTime);
 			this.additionalInfo = additionalInfo;
 			this.shortName = shortName;
 			this.fullName = fullName;
 			this.type = type;
 			this.teacher = teacher;
-			this.location = location;
+			this.venue = venue;
 		}
 
 		@Nullable
@@ -155,7 +193,7 @@ public class GroupScheduleResponse {
 		@NonNull
 		private final String teacher;
 		@NonNull
-		private final String location;
+		private final String venue;
 	}
 
 

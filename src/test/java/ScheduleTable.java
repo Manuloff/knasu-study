@@ -17,7 +17,7 @@ public class ScheduleTable {
 	public static void main(String[] args) throws IOException {
 		Timings.reset();
 
-		UUID id = KnasuAPI.getGroups().getGroupIdByGroupName("4ИТб-2");
+		UUID id = KnasuAPI.getGroups().getGroupIdByGroupName("2ИТб-2");
 		assert id != null;
 
 		Timings.reset();
@@ -25,7 +25,7 @@ public class ScheduleTable {
 		GroupScheduleResponse groupSchedule = KnasuAPI.getGroupSchedule(id, "02.12.2024");
 		Timings.reset();
 
-		byte[] render = GroupScheduleTableRenderer.render(groupSchedule, "02.12");
+		byte[] render = GroupScheduleTableRenderer.render(groupSchedule, "06.12");
 		Timings.reset();
 
 		try (FileOutputStream os = new FileOutputStream("result.png")) {
