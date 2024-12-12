@@ -1,6 +1,5 @@
 import me.manuloff.apps.knasu.study.api.KnasuAPI;
 import me.manuloff.apps.knasu.study.api.response.TeachersResponse;
-import me.manuloff.apps.knasu.study.util.Timings;
 
 import java.util.List;
 
@@ -13,7 +12,7 @@ public class TeachersTest {
 	public static void main(String[] args) {
 		TeachersResponse teachers = KnasuAPI.getTeachers();
 
-		System.out.println(teachers.getByQuery("Сташкевич"));
+		List<TeachersResponse.Teacher> query = teachers.getByQuery("Сташкевич");
 
 	}
 

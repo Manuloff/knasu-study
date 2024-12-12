@@ -1,17 +1,13 @@
-package me.manuloff.apps.knasu.study.util;
+package me.manuloff.apps.knasu.study.renderer;
 
-import com.suke.jtable.Cell;
 import com.suke.jtable.Rect;
-import com.suke.jtable.Table;
 import com.suke.jtable.TextAlign;
 import com.suke.jtable.graphics.FontStyle;
 import lombok.NonNull;
-import me.manuloff.apps.knasu.study.api.response.GroupScheduleResponse;
+import me.manuloff.apps.knasu.study.api.response.ScheduleResponse;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 
@@ -19,16 +15,9 @@ import java.util.Objects;
  * @author Manuloff
  * @since 22:28 11.12.2024
  */
-public final class GroupScheduleTableRenderer {
+public final class ScheduleTableRenderer extends AbstractTableRenderer {
 
-	private final Table table;
-
-	private int currentRow;
-	private int currentCol;
-
-	private GroupScheduleTableRenderer(@NonNull GroupScheduleResponse groupSchedule, @Nullable String date) {
-		this.table = new Table();
-
+	private ScheduleTableRenderer(@NonNull ScheduleResponse groupSchedule, @Nullable String date) {
 		this.table.setFontName("Roboto")
 				.setCellPadding(new Rect(20, 0))
 				.setFontSize(18)
@@ -43,12 +32,12 @@ public final class GroupScheduleTableRenderer {
 		int lastLesson = 0;
 
 		if (date != null) {
-			GroupScheduleResponse.DailySchedule dailySchedule = groupSchedule.getDailyScheduleByDate(date);
+			ScheduleResponse.DailySchedule dailySchedule = groupSchedule.getDailyScheduleByDate(date);
 			assert dailySchedule != null;
 
 			lastLesson = this.getLastLesson(dailySchedule);
 		} else {
-			for (GroupScheduleResponse.DailySchedule schedule : groupSchedule.getDailySchedules()) {
+			for (ScheduleResponse.DailySchedule schedule : groupSchedule.getDailySchedules()) {
 				int ll = this.getLastLesson(schedule);
 
 				if (lastLesson < ll) {
@@ -63,19 +52,19 @@ public final class GroupScheduleTableRenderer {
 		this.nextColumn();
 
 		if (date != null) {
-			GroupScheduleResponse.DailySchedule dailySchedule = groupSchedule.getDailyScheduleByDate(date);
+			ScheduleResponse.DailySchedule dailySchedule = groupSchedule.getDailyScheduleByDate(date);
 			assert dailySchedule != null;
 
 			this.drawDailySchedule(dailySchedule, lastLesson);
 		} else {
-			for (GroupScheduleResponse.DailySchedule schedule : groupSchedule.getDailySchedules()) {
+			for (ScheduleResponse.DailySchedule schedule : groupSchedule.getDailySchedules()) {
 				this.drawDailySchedule(schedule, lastLesson);
 			}
 		}
 	}
 
-	private int getLastLesson(@NonNull GroupScheduleResponse.DailySchedule schedule) {
-		List<GroupScheduleResponse.Lesson> lessons = schedule.getLessons();
+	private int getLastLesson(@NonNull ScheduleResponse.DailySchedule schedule) {
+		List<ScheduleResponse.Lesson> lessons = schedule.getLessons();
 		if (lessons.isEmpty()) return 0;
 
 		for (int i = lessons.size() - 1; i >= 0; i--) {
@@ -85,7 +74,7 @@ public final class GroupScheduleTableRenderer {
 		return 0;
 	}
 
-	private void drawTimings(@NonNull List<GroupScheduleResponse.LessonTime> lessonTimes, int lastLesson) {
+	private void drawTimings(@NonNull List<ScheduleResponse.LessonTime> lessonTimes, int lastLesson) {
 		this.cell();
 		this.cell().setText("№");
 		this.cell().setText("пары");
@@ -96,7 +85,7 @@ public final class GroupScheduleTableRenderer {
 		}
 	}
 
-	private void drawTiming(int i, @NonNull GroupScheduleResponse.LessonTime lessonTime) {
+	private void drawTiming(int i, @NonNull ScheduleResponse.LessonTime lessonTime) {
 		this.cell();
 		this.cell().setText(String.valueOf(i));
 		this.cell().setText(lessonTime.getStartTime() + " -").setFontStyle(FontStyle.BOLD);
@@ -105,8 +94,8 @@ public final class GroupScheduleTableRenderer {
 		this.cell();
 	}
 
-	private void drawDailySchedule(@NonNull GroupScheduleResponse.DailySchedule schedule, int lastLesson) {
-		List<GroupScheduleResponse.Lesson> lessons = schedule.getLessons();
+	private void drawDailySchedule(@NonNull ScheduleResponse.DailySchedule schedule, int lastLesson) {
+		List<ScheduleResponse.Lesson> lessons = schedule.getLessons();
 
 		int maxLessons = lessons.stream().filter(Objects::nonNull).mapToInt(lesson -> lesson.getLessons().size()).max().orElse(1);
 		System.out.println(schedule.getDate() + " - " + maxLessons);
@@ -117,7 +106,7 @@ public final class GroupScheduleTableRenderer {
 		this.cell(maxLessons);
 
 		for (int i = 0; i < lastLesson; i++) {
-			GroupScheduleResponse.Lesson lesson = lessons.get(i);
+			ScheduleResponse.Lesson lesson = lessons.get(i);
 			if (lesson == null) {
 				this.drawLesson(null, maxLessons);
 				continue;
@@ -127,7 +116,7 @@ public final class GroupScheduleTableRenderer {
 				int rememberedCol = this.currentCol;
 				int rememberedRow = this.currentRow;
 
-				for (GroupScheduleResponse.LessonInfo lessonInfo : lesson.getLessons()) {
+				for (ScheduleResponse.LessonInfo lessonInfo : lesson.getLessons()) {
 					this.currentRow = rememberedRow;
 
 					this.drawLesson(lessonInfo, 1);
@@ -146,7 +135,7 @@ public final class GroupScheduleTableRenderer {
 		this.currentRow = 0;
 	}
 
-	private void drawLesson(@Nullable GroupScheduleResponse.LessonInfo lesson, int colSpan) {
+	private void drawLesson(@Nullable ScheduleResponse.LessonInfo lesson, int colSpan) {
 		if (lesson != null) {
 			if (lesson.getAdditionalInfo() != null) {
 				this.cell(colSpan).setText(lesson.getAdditionalInfo()).setFontStyle(FontStyle.ITALIC).setFontColor(Color.RED);
@@ -156,7 +145,7 @@ public final class GroupScheduleTableRenderer {
 
 			this.cell(colSpan).setText(lesson.getShortName()).setFontStyle(FontStyle.BOLD);
 			this.cell(colSpan).setText(lesson.getType());
-			this.cell(colSpan).setText(lesson.getTeacher()).setFontColor(new Color(0x3EB7EF));
+			this.cell(colSpan).setText(String.join(" ", lesson.getParticipants())).setFontColor(new Color(0x3EB7EF));
 			this.cell(colSpan).setText(lesson.getVenue()).setFontStyle(FontStyle.BOLD);
 			this.cell(colSpan);
 
@@ -170,29 +159,8 @@ public final class GroupScheduleTableRenderer {
 		}
 	}
 
-	private Cell cell() {
-		return this.table.getCell(this.currentRow++, this.currentCol);
-	}
-
-	private Cell cell(int colSpan) {
-		return this.table.getCell(this.currentRow++, this.currentCol, 1, colSpan);
-	}
-
-	private void nextColumn() {
-		this.currentCol++;
-		this.currentRow = 0;
-	}
-
-	public static byte[] render(@NonNull GroupScheduleResponse groupSchedule, @Nullable String date) {
-		GroupScheduleTableRenderer renderer = new GroupScheduleTableRenderer(groupSchedule, date);
-
-		try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
-			renderer.table.savePng(os);
-			return os.toByteArray();
-
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
+	public static byte[] render(@NonNull ScheduleResponse groupSchedule, @Nullable String date) {
+		return new ScheduleTableRenderer(groupSchedule, date).render();
 	}
 
 }

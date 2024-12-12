@@ -1,5 +1,3 @@
-import org.xhtmlrenderer.simple.Graphics2DRenderer;
-
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;

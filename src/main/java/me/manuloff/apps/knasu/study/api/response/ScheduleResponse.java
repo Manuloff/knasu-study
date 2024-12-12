@@ -1,43 +1,48 @@
 package me.manuloff.apps.knasu.study.api.response;
 
-import lombok.Data;
-import lombok.Getter;
-import lombok.NonNull;
+import lombok.*;
 import org.jetbrains.annotations.Nullable;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.time.DayOfWeek;
-import java.util.*;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Manuloff
  * @since 14:59 11.12.2024
  */
 @Getter
-public class GroupScheduleResponse {
+public class ScheduleResponse {
 
-	private final String groupName;
-	private final UUID groupId;
+	private final String id;
+	private final String date;
+
+	private final String name;
 
 	private final List<LessonTime> lessonTimes = new LinkedList<>();
 	private final List<DailySchedule> dailySchedules = new LinkedList<>();
 
-	public GroupScheduleResponse(@NonNull Document document) {
+	public ScheduleResponse(@NonNull Document document) {
 		Element body = document.body();
 
-		this.groupId = UUID.fromString(document.baseUri().split("/")[5].split("\\?")[0]);
+		String[] urlSplit = document.baseUri().split("/")[5].split("\\?");
+		this.id = urlSplit[0];
+		this.date = urlSplit[1].replace("day=", "");
 
-		// Если на странице существует название группы, то расписание существует,
+		// Если на странице существует название группы/имя преподавателя, то расписание существует,
 		// иначе его попросту нет на этой неделе
-		Element groupNameElement = body.select("h2.schedule-simple-3-hide").first();
+		Element groupNameElement = body.select("div.col-md-12.main_text h2").first();
 		if (groupNameElement == null) {
-			this.groupName = "";
+			this.name = "";
 			return;
 		}
 
-		this.groupName = groupNameElement.text();
+		this.name = groupNameElement.text();
 
 		Elements headTable = body.select("thead th");
 		for (int i = 1; i < headTable.size(); i++) {
@@ -83,18 +88,16 @@ public class GroupScheduleResponse {
 
 					String type = element.textNodes().get(0).text();
 
-					String teacher = Objects.requireNonNull(element.selectFirst("a")).text();
+					// У расписания учебных групп есть только один участник - учитель,
+					// для учителя же может быть несколько групп.
+					List<String> participants = element.select("a").stream().map(Element::text).collect(Collectors.toCollection(LinkedList::new));
 
 					String venue = element.select("b").get(1).text();
 
-					lesson.lessonInfos.add(new LessonInfo(startTime, endTime, additionalInfo.isEmpty() ? null : additionalInfo, shortName, fullName, type, teacher, venue));
+					lesson.lessonInfos.add(new LessonInfo(startTime, endTime, additionalInfo.isEmpty() ? null : additionalInfo, shortName, fullName, type, participants, venue));
 				}
 			}
 		}
-	}
-
-	public boolean isOk() {
-		return this.groupName != null;
 	}
 
 	@NonNull
@@ -128,6 +131,8 @@ public class GroupScheduleResponse {
 		private final List<Lesson> lessons = new LinkedList<>();
 	}
 
+	@ToString
+	@EqualsAndHashCode(callSuper = true)
 	public static class Lesson extends LessonTime {
 
 		@NonNull
@@ -162,28 +167,12 @@ public class GroupScheduleResponse {
 	}
 
 	@Getter
+	@ToString
+	@EqualsAndHashCode(callSuper = true)
 	public static class LessonInfo extends LessonTime {
-
-		public LessonInfo(@NonNull String startTime,
-						  @NonNull String endTime,
-						  @Nullable String additionalInfo,
-						  @NonNull String shortName,
-						  @NonNull String fullName,
-						  @NonNull String type,
-						  @NonNull String teacher,
-						  @NonNull String venue) {
-			super(startTime, endTime);
-			this.additionalInfo = additionalInfo;
-			this.shortName = shortName;
-			this.fullName = fullName;
-			this.type = type;
-			this.teacher = teacher;
-			this.venue = venue;
-		}
 
 		@Nullable
 		private final String additionalInfo;
-
 		@NonNull
 		private final String shortName;
 		@NonNull
@@ -191,9 +180,26 @@ public class GroupScheduleResponse {
 		@NonNull
 		private final String type;
 		@NonNull
-		private final String teacher;
+		private final List<String> participants;
 		@NonNull
 		private final String venue;
+
+		public LessonInfo(@NonNull String startTime,
+						  @NonNull String endTime,
+						  @Nullable String additionalInfo,
+						  @NonNull String shortName,
+						  @NonNull String fullName,
+						  @NonNull String type,
+						  @NonNull List<String> participants,
+						  @NonNull String venue) {
+			super(startTime, endTime);
+			this.additionalInfo = additionalInfo;
+			this.shortName = shortName;
+			this.fullName = fullName;
+			this.type = type;
+			this.participants = participants;
+			this.venue = venue;
+		}
 	}
 
 

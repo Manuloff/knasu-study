@@ -28,7 +28,7 @@ public final class TeachersResponse {
 		for (Element teacher : content.select("div.col-md-4 a")) {
 			String[] split = teacher.text().split(" ");
 
-			this.teachers.add(new Teacher(split[0], split[1], split[2], teacher.attr("href")));
+			this.teachers.add(new Teacher(split[0], split[1], split[2], teacher.attr("href").split("/")[3]));
 		}
 	}
 
@@ -117,7 +117,7 @@ public final class TeachersResponse {
 		private final String firstName;
 		private final String patronymic;
 
-		private final String url;
+		private final String id;
 
 		@NonNull
 		public String getFullName() {

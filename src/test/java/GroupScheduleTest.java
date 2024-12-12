@@ -1,11 +1,7 @@
-import lombok.NonNull;
 import me.manuloff.apps.knasu.study.api.KnasuAPI;
-import me.manuloff.apps.knasu.study.api.response.GroupScheduleResponse;
-import me.manuloff.apps.knasu.study.api.response.GroupsResponse;
+import me.manuloff.apps.knasu.study.api.response.ScheduleResponse;
 import me.manuloff.apps.knasu.study.util.CalendarUtils;
 
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -23,7 +19,11 @@ public class GroupScheduleTest {
 
 		UUID uuid = UUID.fromString("300ce5f8-bda8-44cf-ba78-5886688937e4");
 
-		GroupScheduleResponse groupSchedule = KnasuAPI.getGroupSchedule(uuid);
+		ScheduleResponse groupSchedule = KnasuAPI.getGroupSchedule(uuid, CalendarUtils.getMondayOfCurrentWeek());
+		System.out.println("groupSchedule.getId() = " + groupSchedule.getId());
+		System.out.println("groupSchedule.getDate() = " + groupSchedule.getDate());
+		System.out.println("groupSchedule.getName() = " + groupSchedule.getName());
+		System.out.println(groupSchedule.getDailySchedules());
 
 	}
 

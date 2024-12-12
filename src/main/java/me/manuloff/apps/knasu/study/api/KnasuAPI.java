@@ -4,10 +4,9 @@ import lombok.Locked;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
-import me.manuloff.apps.knasu.study.api.response.GroupScheduleResponse;
 import me.manuloff.apps.knasu.study.api.response.GroupsResponse;
+import me.manuloff.apps.knasu.study.api.response.ScheduleResponse;
 import me.manuloff.apps.knasu.study.api.response.TeachersResponse;
-import me.manuloff.apps.knasu.study.util.CalendarUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
@@ -57,14 +56,15 @@ public class KnasuAPI {
 	}
 
 	@NonNull
-	public static GroupScheduleResponse getGroupSchedule(@NonNull UUID groupId) {
-		return getGroupSchedule(groupId, CalendarUtils.getMondayOfCurrentWeek());
+	@Locked.Read
+	public static ScheduleResponse getGroupSchedule(@NonNull UUID groupId, @NonNull String day) {
+		return get("https://knastu.ru/students/schedule/" + groupId + "?day=" + day, ScheduleResponse::new, TimeUnit.HOURS.toMillis(1));
 	}
 
 	@NonNull
 	@Locked.Read
-	public static GroupScheduleResponse getGroupSchedule(@NonNull UUID groupId, @NonNull String day) {
-		return get("https://knastu.ru/students/schedule/" + groupId + "?day=" + day, GroupScheduleResponse::new, TimeUnit.HOURS.toMillis(1));
+	public static ScheduleResponse getTeacherSchedule(@NonNull String teacherId, @NonNull String day) {
+		return get("https://knastu.ru/teachers/schedule/" + teacherId + "?day=" + day, ScheduleResponse::new, TimeUnit.HOURS.toMillis(1));
 	}
 
 }

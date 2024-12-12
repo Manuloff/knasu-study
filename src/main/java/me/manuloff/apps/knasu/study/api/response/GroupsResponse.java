@@ -85,14 +85,32 @@ public final class GroupsResponse {
 		return this.groupIdByGroupName.getOrDefault(groupName, null);
 	}
 
-	@EqualsAndHashCode
-	@ToString
 	@RequiredArgsConstructor
 	public static class Faculty {
 		private final String abbreviation;
 		private final String name;
 
 		private final Map<String, List<String>> enrollmentYearsGroups;
+
+		@Override
+		public boolean equals(Object o) {
+			if (!(o instanceof Faculty faculty)) return false;
+			return Objects.equals(name, faculty.name);
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hashCode(name);
+		}
+
+		@Override
+		public String toString() {
+			return "Faculty{" +
+					"abbreviation='" + abbreviation + '\'' +
+					", name='" + name + '\'' +
+					", enrollmentYearsGroups=" + enrollmentYearsGroups +
+					'}';
+		}
 	}
 
 }

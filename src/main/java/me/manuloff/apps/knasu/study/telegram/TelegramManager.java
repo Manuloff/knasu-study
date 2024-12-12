@@ -8,7 +8,6 @@ import com.pengrad.telegrambot.model.request.Keyboard;
 import com.pengrad.telegrambot.request.BaseRequest;
 import com.pengrad.telegrambot.request.EditMessageText;
 import com.pengrad.telegrambot.request.SendMessage;
-import com.pengrad.telegrambot.request.SendPhoto;
 import com.pengrad.telegrambot.response.BaseResponse;
 import lombok.AccessLevel;
 import lombok.Getter;
