@@ -9,6 +9,8 @@ import saharnooby.lib.config.rewrite.io.ConfigIO;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -21,10 +23,13 @@ public final class AppConfig {
 	private final String telegramToken;
 	private final DatabaseConfig databaseConfig;
 
+	private final Map<String, String> groupCodes = new HashMap<>();
+
 	public AppConfig(@NonNull ConfigSection section) {
 		this.telegramToken = section.strings().require("telegramToken");
-
 		this.databaseConfig = new DatabaseConfig(section.sections().require("database"));
+
+		section.sections().require("groupCodes").strings().forEachChecked(this.groupCodes::put);
 	}
 
 	public static AppConfig load() throws IOException {

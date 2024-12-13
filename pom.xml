@@ -89,9 +89,9 @@
         </dependency>
 
         <dependency>
-            <groupId>org.xhtmlrenderer</groupId>
-            <artifactId>flying-saucer-core</artifactId>
-            <version>9.1.22</version>
+            <groupId>technology.tabula</groupId>
+            <artifactId>tabula</artifactId>
+            <version>1.0.5</version>
         </dependency>
     </dependencies>
 
