@@ -27,8 +27,8 @@ public class DataEntry implements Iterable<String> {
 	}
 
 	@NonNull
-	public static DataEntry of(@NonNull String... values) {
-		return new DataEntry(Arrays.stream(values).collect(Collectors.toCollection(LinkedList::new)));
+	public static DataEntry of(@NonNull Object... values) {
+		return new DataEntry(Arrays.stream(values).map(Object::toString).collect(Collectors.toCollection(LinkedList::new)));
 	}
 
 	@NonNull
@@ -85,6 +85,11 @@ public class DataEntry implements Iterable<String> {
 		return Integer.parseInt(this.data.get(index));
 	}
 
+	public boolean getBoolean(int index) {
+		this.checkIndex(index);
+		return Boolean.parseBoolean(this.data.get(index));
+	}
+
 	private void checkIndex(int index) {
 		if (index < 0 || index >= data.size()) {
 			throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + data.size());
@@ -98,7 +103,7 @@ public class DataEntry implements Iterable<String> {
 
 	@Override
 	public String toString() {
-		return "DataEntry" + this.data;
+		return this.data.toString();
 	}
 
 	@NotNull

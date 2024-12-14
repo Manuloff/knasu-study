@@ -42,8 +42,6 @@ public class GroupCodesResponse {
 
 		String url = "https://knastu.ru" + Objects.requireNonNull(spoiler.select("li a").last()).attr("href");
 
-		System.out.println("url = " + url);
-
 		try (InputStream in = new URL(url).openConnection().getInputStream()) {
 			try (PDDocument doc = PDDocument.load(in)) {
 				PDFTextStripper stripper = new PDFTextStripper();

@@ -29,36 +29,32 @@ public final class ScheduleTableRenderer extends AbstractTableRenderer {
 					.setFontSize(22);
 		}
 
-		int lastLesson = 0;
+//		int lastLesson = 0;
+//
+//		if (date != null) {
+//			ScheduleResponse.DailySchedule dailySchedule = groupSchedule.getDailyScheduleByDate(date);
+//			assert dailySchedule != null;
+//
+//			lastLesson = this.getLastLesson(dailySchedule);
+//		} else {
+//			for (ScheduleResponse.DailySchedule schedule : groupSchedule.getDailySchedules()) {
+//				int ll = this.getLastLesson(schedule);
+//
+//				if (lastLesson < ll) {
+//					lastLesson = ll;
+//				}
+//			}
+//		}
 
-		if (date != null) {
-			ScheduleResponse.DailySchedule dailySchedule = groupSchedule.getDailyScheduleByDate(date);
-			assert dailySchedule != null;
-
-			lastLesson = this.getLastLesson(dailySchedule);
-		} else {
-			for (ScheduleResponse.DailySchedule schedule : groupSchedule.getDailySchedules()) {
-				int ll = this.getLastLesson(schedule);
-
-				if (lastLesson < ll) {
-					lastLesson = ll;
-				}
-			}
-		}
-
-		System.out.println("lastLesson = " + lastLesson);
-
-		this.drawTimings(groupSchedule.getLessonTimes(), lastLesson);
+		this.drawTimings(groupSchedule.getLessonTimes());
 		this.nextColumn();
 
 		if (date != null) {
-			ScheduleResponse.DailySchedule dailySchedule = groupSchedule.getDailyScheduleByDate(date);
-			assert dailySchedule != null;
+			this.drawDailySchedule(groupSchedule.getDailyScheduleByDate(date));
 
-			this.drawDailySchedule(dailySchedule, lastLesson);
 		} else {
 			for (ScheduleResponse.DailySchedule schedule : groupSchedule.getDailySchedules()) {
-				this.drawDailySchedule(schedule, lastLesson);
+				this.drawDailySchedule(schedule);
 			}
 		}
 	}
@@ -74,13 +70,13 @@ public final class ScheduleTableRenderer extends AbstractTableRenderer {
 		return 0;
 	}
 
-	private void drawTimings(@NonNull List<ScheduleResponse.LessonTime> lessonTimes, int lastLesson) {
+	private void drawTimings(@NonNull List<ScheduleResponse.LessonTime> lessonTimes) {
 		this.cell();
 		this.cell().setText("№");
 		this.cell().setText("пары");
 		this.cell();
 
-		for (int i = 0; i < lastLesson; i++) {
+		for (int i = 0; i < lessonTimes.size(); i++) {
 			this.drawTiming(i + 1, lessonTimes.get(i));
 		}
 	}
@@ -94,19 +90,17 @@ public final class ScheduleTableRenderer extends AbstractTableRenderer {
 		this.cell();
 	}
 
-	private void drawDailySchedule(@NonNull ScheduleResponse.DailySchedule schedule, int lastLesson) {
+	private void drawDailySchedule(@NonNull ScheduleResponse.DailySchedule schedule) {
 		List<ScheduleResponse.Lesson> lessons = schedule.getLessons();
 
 		int maxLessons = lessons.stream().filter(Objects::nonNull).mapToInt(lesson -> lesson.getLessons().size()).max().orElse(1);
-		System.out.println(schedule.getDate() + " - " + maxLessons);
 
 		this.cell(maxLessons);
 		this.cell(maxLessons).setText(schedule.getDayOfWeek());
 		this.cell(maxLessons).setText(schedule.getDate());
 		this.cell(maxLessons);
 
-		for (int i = 0; i < lastLesson; i++) {
-			ScheduleResponse.Lesson lesson = lessons.get(i);
+		for (ScheduleResponse.Lesson lesson : lessons) {
 			if (lesson == null) {
 				this.drawLesson(null, maxLessons);
 				continue;

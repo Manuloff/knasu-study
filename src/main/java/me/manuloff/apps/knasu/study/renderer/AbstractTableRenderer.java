@@ -4,6 +4,10 @@ import com.suke.jtable.Cell;
 import com.suke.jtable.Table;
 import lombok.SneakyThrows;
 
+import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 
 /**
@@ -36,10 +40,46 @@ public abstract class AbstractTableRenderer {
 
 	@SneakyThrows
 	protected final byte[] render() {
-		try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-			this.table.savePng(baos);
+		try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+			this.table.savePng(out);
+			byte[] bytes = out.toByteArray();
 
-			return baos.toByteArray();
+			return padToSquare(bytes);
+		}
+	}
+
+	@SneakyThrows
+	private byte[] padToSquare(byte[] bytes) {
+		try (ByteArrayInputStream in = new ByteArrayInputStream(bytes)) {
+			BufferedImage image = ImageIO.read(in);
+
+			int width = image.getWidth();
+			int height = image.getHeight();
+
+			int squareSize = Math.max(width, height);
+
+			BufferedImage squareImage = new BufferedImage(squareSize, squareSize, BufferedImage.TYPE_INT_RGB);
+			Graphics2D g2 = squareImage.createGraphics();
+
+			g2.setColor(Color.WHITE);
+			g2.fillRect(0, 0, squareSize, squareSize);
+
+			int x = (squareSize - width) / 2;
+			int y = (squareSize - height) / 2;
+
+			g2.drawImage(image, x, y, null);
+			g2.setColor(Color.BLACK);
+
+			int borderWidth = 2;
+
+			g2.setStroke(new BasicStroke(borderWidth));
+			g2.drawRect(x - borderWidth / 2, y - borderWidth / 2, width + borderWidth, height + borderWidth);
+			g2.dispose();
+
+			try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+				ImageIO.write(squareImage, "png", out);
+				return out.toByteArray();
+			}
 		}
 	}
 

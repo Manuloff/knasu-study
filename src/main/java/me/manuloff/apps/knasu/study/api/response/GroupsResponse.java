@@ -61,7 +61,7 @@ public final class GroupsResponse {
 	}
 
 	@Nullable
-	public List<String> getEnrollmentYearsBy(@NonNull String facultyName) {
+	public List<String> getEnrollmentYears(@NonNull String facultyName) {
 		Faculty faculty = this.facultyByName.getOrDefault(facultyName, null);
 
 		return faculty != null ? new ArrayList<>(faculty.enrollmentYearsGroups.keySet()) : null;

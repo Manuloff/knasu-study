@@ -18,7 +18,14 @@ import java.time.temporal.ChronoField;
 public class CalendarUtils {
 
 	private static final ZoneId ZONE_ID = ZoneId.of("Asia/Vladivostok");
-	private static final DateTimeFormatter FORMATTER = new DateTimeFormatterBuilder()
+
+	private static final DateTimeFormatter SHORT_FORMATTER = new DateTimeFormatterBuilder()
+			.appendValue(ChronoField.DAY_OF_MONTH, 2)
+			.appendLiteral('.')
+			.appendValue(ChronoField.MONTH_OF_YEAR, 2)
+			.toFormatter();
+
+	private static final DateTimeFormatter FULL_FORMATTER = new DateTimeFormatterBuilder()
 			.appendValue(ChronoField.DAY_OF_MONTH, 2)
 			.appendLiteral('.')
 			.appendValue(ChronoField.MONTH_OF_YEAR, 2)
@@ -27,7 +34,32 @@ public class CalendarUtils {
 			.toFormatter();
 
 	@NonNull
+	public static String getCurrentDay() {
+		return LocalDate.now(ZONE_ID).format(FULL_FORMATTER);
+	}
+
+	@NonNull
 	public static String getMondayOfCurrentWeek() {
-		return LocalDate.now(ZONE_ID).with(DayOfWeek.MONDAY).format(FORMATTER);
+		return LocalDate.now(ZONE_ID).with(DayOfWeek.MONDAY).format(FULL_FORMATTER);
+	}
+
+	@NonNull
+	public static String getMondayOfWeek(@NonNull String date) {
+		return LocalDate.parse(date, FULL_FORMATTER).with(DayOfWeek.MONDAY).format(FULL_FORMATTER);
+	}
+
+	@NonNull
+	public static String removeYearFromDate(@NonNull String date) {
+		return LocalDate.parse(date, FULL_FORMATTER).format(SHORT_FORMATTER);
+	}
+
+	@NonNull
+	public static String plusDays(@NonNull String date, int days) {
+		return LocalDate.parse(date, FULL_FORMATTER).plusDays(days).format(FULL_FORMATTER);
+	}
+
+	@NonNull
+	public static String minusDays(@NonNull String date, int days) {
+		return LocalDate.parse(date, FULL_FORMATTER).minusDays(days).format(FULL_FORMATTER);
 	}
 }

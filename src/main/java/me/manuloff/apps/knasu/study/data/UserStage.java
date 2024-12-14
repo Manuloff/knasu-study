@@ -6,7 +6,14 @@ package me.manuloff.apps.knasu.study.data;
  */
 public enum UserStage {
 	INITIAL,
+
 	GROUP_SELECTION,
-	MAIN_MENU
+
+	MAIN_MENU,
+
+	MY_SCHEDULE,
+
+	TEACHER_SELECTION,
+	TEACHER_SCHEDULE
 
 }

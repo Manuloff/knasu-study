@@ -115,9 +115,20 @@ public class ScheduleResponse {
 		return this.dailySchedules.get(dayOfWeek.ordinal());
 	}
 
-	@Nullable
+	@NonNull
 	public DailySchedule getDailyScheduleByDate(@NonNull String date) {
-		return this.dailySchedules.stream().filter(schedule -> schedule.date.equals(date)).findFirst().orElse(null);
+		return this.dailySchedules.stream().filter(schedule -> schedule.date.equals(date)).findFirst().orElse(this.createEmptyDailySchedule(date));
+	}
+
+	@NonNull
+	private DailySchedule createEmptyDailySchedule(@NonNull String date) {
+		DailySchedule schedule = new DailySchedule(date, "");
+
+		for (int i = 0; i < this.lessonTimes.size(); i++) {
+			schedule.lessons.add(null);
+		}
+
+		return schedule;
 	}
 
 	@Data
@@ -144,10 +155,6 @@ public class ScheduleResponse {
 
 		public boolean isParallelLesson() {
 			return this.lessonInfos.size() > 1;
-		}
-
-		public boolean isSingleLesson() {
-			return this.lessonInfos.size() == 1;
 		}
 
 		@NonNull

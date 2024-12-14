@@ -101,13 +101,13 @@ public class KnasuAPI {
 	@NonNull
 	@Locked.Read
 	public static GroupsResponse getGroups() {
-		return parseHtml("https://knastu.ru/students/schedule", GroupsResponse::new, TimeUnit.DAYS.toMillis(1));
+		return parseHtml("https://knastu.ru/students/schedule", GroupsResponse::new, TimeUnit.DAYS.toMillis(7));
 	}
 
 	@NonNull
 	@Locked.Read
 	public static TeachersResponse getTeachers() {
-		return parseHtml("https://knastu.ru/teachers/schedule", TeachersResponse::new, TimeUnit.DAYS.toMillis(1));
+		return parseHtml("https://knastu.ru/teachers/schedule", TeachersResponse::new, TimeUnit.DAYS.toMillis(7));
 	}
 
 	@NonNull
@@ -125,30 +125,30 @@ public class KnasuAPI {
 	@NonNull
 	@Locked.Read
 	public static GroupCodesResponse getGroupCodes() {
-		return parseHtml("https://www.knastu.ru/page/1404", GroupCodesResponse::new, TimeUnit.DAYS.toMillis(1));
+		return parseHtml("https://www.knastu.ru/page/1404", GroupCodesResponse::new, TimeUnit.DAYS.toMillis(7));
 	}
 
 	@NonNull
 	@Locked.Read
 	public static EducationalProgramResponse getEducationalProgram(@NonNull String specialityCode) {
-		return parseHtml("https://knastu.ru/sveden/education/" + specialityCode, EducationalProgramResponse::new, TimeUnit.DAYS.toMillis(1));
+		return parseHtml("https://knastu.ru/sveden/education/" + specialityCode, EducationalProgramResponse::new, TimeUnit.DAYS.toMillis(7));
 	}
 
 	@NonNull
 	@Locked.Read
 	public static WorkingStudyPlanResponse getWorkingProgram(@NonNull String href) {
-		return parseHtml("https://knastu.ru/sveden/education/" + href, WorkingStudyPlanResponse::new, TimeUnit.DAYS.toMillis(1));
+		return parseHtml("https://knastu.ru/sveden/education/" + href, WorkingStudyPlanResponse::new, TimeUnit.DAYS.toMillis(7));
 	}
 
 	@NonNull
 	@Locked.Read
 	public static GroupProgramAnnotation getGroupProgramAnnotation(@NonNull String href) {
-		return parsePdf("https://knastu.ru" + href, GroupProgramAnnotation::new, TimeUnit.DAYS.toMillis(1));
+		return parsePdf("https://knastu.ru" + href, GroupProgramAnnotation::new, TimeUnit.DAYS.toMillis(7));
 	}
 
 	@NonNull
 	@Locked.Read
 	public static AcademicCalendarResponse getAcademicCalendar(@NonNull String href) {
-		return parsePdf("https://knastu.ru" + href, AcademicCalendarResponse::new, TimeUnit.DAYS.toMillis(1));
+		return parsePdf("https://knastu.ru" + href, AcademicCalendarResponse::new, TimeUnit.DAYS.toMillis(7));
 	}
 }

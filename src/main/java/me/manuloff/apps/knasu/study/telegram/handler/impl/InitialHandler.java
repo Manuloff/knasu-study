@@ -8,6 +8,7 @@ import me.manuloff.apps.knasu.study.data.UserStage;
 import me.manuloff.apps.knasu.study.telegram.Keyboards;
 import me.manuloff.apps.knasu.study.telegram.handler.AbstractHandler;
 import me.manuloff.apps.knasu.study.telegram.handler.HandlerType;
+import me.manuloff.apps.knasu.study.telegram.method.SMessage;
 
 import java.util.List;
 
@@ -22,7 +23,8 @@ public final class InitialHandler extends AbstractHandler<Message> {
 
 	@Override
 	protected boolean handle(@NonNull Message update) {
-		UserData data = UserData.of(update.from().id());
+		UserData data = this.userData(update);
+
 		boolean result = data.getGroup() == null && data.getStage() == null;
 		if (result) {
 			this.handleStart(update);
@@ -32,17 +34,25 @@ public final class InitialHandler extends AbstractHandler<Message> {
 	}
 
 	private void handleStart(@NonNull Message message) {
-		this.manager().answer(message, "Ну привет, сладкий :3");
-		this.manager().answer(message, "Давай-ка пройдем с тобой регистрацию");
-		this.manager().answer(message, "Для использования бота-помощника, тебе нужно указать свою группу.\nПросто напиши мне свою учебную группу в ответном сообщении");
+		SMessage.of(message).text("""
+				Привет, %s! 👋
+				
+				Я твой умный помощник для учебы. Я помогу тебе с расписанием, рабочими программами, календарным графиком и полезными материалами для подготовки к экзаменам.✨
+				""", message.from().firstName()).execute();
+
+		SMessage.of(message).text("""
+				Чтобы начать, выбери свою учебную группу. Это необходимо, чтобы я мог предоставить тебе персонализированную информацию.
+				
+				Ты можешь написать название своей группы в ответном сообщении.
+				""").execute();
 
 		this.userData(message).setStage(UserStage.GROUP_SELECTION);
 
 		List<String> faculties = KnasuAPI.getGroups().getFaculties();
 
-		this.manager().answer(message,
-				"Либо найди свою учебную группу, используя клавиатуру.\n" +
-						"Для начала выбери свою кафедру.",
-				Keyboards.facultiesKeyboard(faculties));
+		SMessage.of(message)
+				.text("Также ты можешь использовать кнопки меню, чтобы выбрать свой факультет.")
+				.replyMarkup(Keyboards.facultiesKeyboard(faculties))
+				.execute();
 	}
 }

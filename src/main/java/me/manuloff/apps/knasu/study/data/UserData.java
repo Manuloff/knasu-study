@@ -7,7 +7,11 @@ import me.saharnooby.lib.query.orm.annotation.Ignore;
 import me.saharnooby.lib.query.orm.annotation.Table;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * @author Manuloff
@@ -22,18 +26,22 @@ public final class UserData {
 	@Column(primaryKey = true, notNull = true)
 	private final long userId;
 
-	private String group = null;
+	private String group;
 
-	private UserStage stage = null;
+	private UserStage stage;
+
+	@Column("recent_teachers")
+	private String recentTeachers;
 
 	@Ignore
 	@Getter
 	private long lastAccessTime = System.currentTimeMillis();
 
-	public UserData(long userId, @Nullable String group, @Nullable UserStage stage) {
+	public UserData(long userId, @Nullable String group, @Nullable UserStage stage, @Nullable String recentTeachers) {
 		this.userId = userId;
 		this.group = group;
 		this.stage = stage;
+		this.recentTeachers = recentTeachers;
 	}
 
 	@Nullable
@@ -67,26 +75,20 @@ public final class UserData {
 		this.update("stage");
 	}
 
-//	@NonNull
-//	public JsonObject getState() {
-//		this.lastAccessTime = System.currentTimeMillis();
-//
-//		if (this.state != null) {
-//			return GsonUtil.gson.fromJson(this.state, JsonObject.class);
-//		} else {
-//			return new JsonObject();
-//		}
-//	}
-//
-//	public void setState(@Nullable JsonObject state) {
-//		this.lastAccessTime = System.currentTimeMillis();
-//
-//		if (state != null) {
-//			this.state = GsonUtil.toJson(state);
-//		} else {
-//			this.state = null;
-//		}
-//	}
+	@NonNull
+	public List<String> getRecentTeachers() {
+		this.lastAccessTime = System.currentTimeMillis();
+
+		return this.recentTeachers != null ? Arrays.stream(this.recentTeachers.split(",")).collect(Collectors.toCollection(LinkedList::new))
+				: new LinkedList<>();
+	}
+
+	public void setRecentTeachers(@NonNull List<String> teachers) {
+		this.lastAccessTime = System.currentTimeMillis();
+
+		this.recentTeachers = String.join(",", teachers);
+		this.update("recent_teachers");
+	}
 
 	//
 

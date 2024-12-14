@@ -36,7 +36,8 @@ public abstract class MessageHandler extends AbstractHandler<Message> {
 	@Override
 	@SneakyThrows
 	protected final boolean handle(@NonNull Message update) {
-		boolean result = update.text() != null && update.text().equalsIgnoreCase(this.filter);
+
+		boolean result = this.filter == null || (update.text() != null && update.text().equalsIgnoreCase(this.filter));
 		if (result) {
 			this.handleMessage(update);
 		}

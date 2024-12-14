@@ -1,28 +1,26 @@
 package me.manuloff.apps.knasu.study.telegram;
 
 import com.pengrad.telegrambot.TelegramBot;
-import com.pengrad.telegrambot.model.CallbackQuery;
-import com.pengrad.telegrambot.model.Message;
-import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
-import com.pengrad.telegrambot.model.request.Keyboard;
-import com.pengrad.telegrambot.request.BaseRequest;
-import com.pengrad.telegrambot.request.EditMessageText;
-import com.pengrad.telegrambot.request.SendMessage;
-import com.pengrad.telegrambot.response.BaseResponse;
+import com.pengrad.telegrambot.model.BotCommand;
+import com.pengrad.telegrambot.model.botcommandscope.BotCommandsScopeChat;
+import com.pengrad.telegrambot.request.SetMyCommands;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.extern.log4j.Log4j2;
 import me.manuloff.apps.knasu.study.KnasuStudy;
 import me.manuloff.apps.knasu.study.telegram.handler.AbstractHandler;
-import me.manuloff.apps.knasu.study.telegram.handler.impl.*;
+import me.manuloff.apps.knasu.study.telegram.handler.impl.InitialHandler;
+import me.manuloff.apps.knasu.study.telegram.handler.impl.StartCommand;
+import me.manuloff.apps.knasu.study.telegram.handler.impl.groupselection.GroupSelectionCallback;
+import me.manuloff.apps.knasu.study.telegram.handler.impl.groupselection.GroupSelectionMessage;
+import me.manuloff.apps.knasu.study.telegram.handler.impl.myschedule.MyScheduleCallback;
+import me.manuloff.apps.knasu.study.telegram.handler.impl.myschedule.MyScheduleCommand;
+import me.manuloff.apps.knasu.study.telegram.handler.impl.myschedule.MyScheduleMessage;
+import me.manuloff.apps.knasu.study.telegram.handler.impl.teacherschedule.*;
 
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Consumer;
-import java.util.function.Predicate;
 
 /**
  * @author Manuloff
@@ -35,10 +33,6 @@ public final class TelegramManager {
 	private final TelegramBot bot;
 
 	@Getter(AccessLevel.PACKAGE)
-	private final Map<Long, Predicate<Message>> awaitingMessages = new HashMap<>();
-	@Getter(AccessLevel.PACKAGE)
-	private final Map<Long, Predicate<CallbackQuery>> awaitingCallbackQueries = new HashMap<>();
-	@Getter(AccessLevel.PACKAGE)
 	private final List<AbstractHandler<?>> handlers = new LinkedList<>();
 
 	public TelegramManager() {
@@ -47,72 +41,41 @@ public final class TelegramManager {
 		this.bot.setUpdatesListener(new UpdatesRouter(this));
 
 		this.registerHandler(new InitialHandler());
-		this.registerHandler(new MessageGroupSelectionHandler());
-		this.registerHandler(new ShowEnrollmentYearsHandler());
-		this.registerHandler(new ShowGroupsHandler());
-		this.registerHandler(new SetGroupHandler());
-		this.registerHandler(new StartCmdHandler());
+
+		// Выбор группы
+		this.registerHandler(new GroupSelectionMessage());
+		this.registerHandler(new GroupSelectionCallback());
+
+		// Моё расписание
+		this.registerHandler(new MyScheduleCommand());
+		this.registerHandler(new MyScheduleMessage());
+		this.registerHandler(new MyScheduleCallback());
+
+		// Расписание преподавателя
+		this.registerHandler(new TeacherScheduleCommand());
+		this.registerHandler(new TeacherScheduleMessage());
+		this.registerHandler(new TeacherScheduleCallback());
+		this.registerHandler(new TeacherSelectionMessage());
+		this.registerHandler(new TeacherSelectionCallback());
+
+		this.registerHandler(new StartCommand());
 	}
 
 	private void registerHandler(@NonNull AbstractHandler<?> handler) {
 		this.handlers.add(handler);
 	}
 
-	//
+	public void showCommandsFor(long chatId) {
+		SetMyCommands commands = new SetMyCommands(
+				new BotCommand("/start", "Вызывает начальное меню"),
+				new BotCommand("/my_schedule", "Показывает Ваше расписание"),
+				new BotCommand("/teacher_schedule", "Показывает расписание преподавателей"),
+				new BotCommand("/working_program", "Показывает информацию о Ваших рабочих программах"),
+				new BotCommand("/academic_calendar", "Показывает Ваш календарный учебный график"),
+				new BotCommand("/materials", "Показывает методические материалы для Вас")
+		);
+		commands.scope(new BotCommandsScopeChat(chatId));
 
-	public void awaitMessage(long userId, @NonNull Predicate<Message> predicate) {
-		this.awaitingMessages.put(userId, predicate);
+		this.bot.execute(commands);
 	}
-
-	public void awaitCallback(long userId, @NonNull Predicate<CallbackQuery> predicate) {
-		this.awaitingCallbackQueries.put(userId, predicate);
-	}
-
-	public void answer(@NonNull Message message, @NonNull String text) {
-		this.answer(message.from().id(), text, sendMessage -> {});
-	}
-
-	public void answer(@NonNull Message message, @NonNull String text, @NonNull Keyboard keyboard) {
-		this.answer(message.from().id(), text, sendMessage -> sendMessage.replyMarkup(keyboard));
-	}
-
-	public void answer(@NonNull CallbackQuery callback, @NonNull String text) {
-		this.answer(callback.from().id(), text, sendMessage -> {});
-	}
-
-	public void answer(@NonNull CallbackQuery callback, @NonNull String text, @NonNull Keyboard keyboard) {
-		this.answer(callback.from().id(), text, sendMessage -> sendMessage.replyMarkup(keyboard));
-	}
-
-	public void answer(long chatId, @NonNull String text, @NonNull Consumer<SendMessage> consumer) {
-		SendMessage request = new SendMessage(chatId, text);
-		consumer.accept(request);
-
-		this.safeExecute(request);
-	}
-
-	//
-
-	public void edit(@NonNull CallbackQuery callback, @NonNull String text) {
-		this.edit(callback, text, editMessage -> {});
-	}
-
-	public void edit(@NonNull CallbackQuery callback, @NonNull String text, @NonNull InlineKeyboardMarkup keyboard) {
-		this.edit(callback, text, editMessage -> editMessage.replyMarkup(keyboard));
-	}
-
-	public void edit(@NonNull CallbackQuery callback, @NonNull String text, @NonNull Consumer<EditMessageText> consumer) {
-		EditMessageText request = new EditMessageText(callback.maybeInaccessibleMessage().chat().id(), callback.maybeInaccessibleMessage().messageId(), text);
-		consumer.accept(request);
-
-		this.safeExecute(request);
-	}
-
-	private <T extends BaseRequest<T, R>, R extends BaseResponse> void safeExecute(BaseRequest<T, R> request) {
-		R response = this.bot.execute(request);
-		if (response.isOk()) return;
-
-		log.error("Telegram Error {}: {}", response.errorCode(), response.description());
-	}
-
 }
