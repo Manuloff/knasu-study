@@ -1,6 +1,7 @@
 package me.manuloff.apps.knasu.study.telegram.handler.impl.myschedule;
 
 import com.pengrad.telegrambot.model.Message;
+import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
 import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import com.pengrad.telegrambot.model.request.InputMediaPhoto;
 import com.pengrad.telegrambot.request.EditMessageCaption;
@@ -22,6 +23,7 @@ import me.manuloff.apps.knasu.study.util.CalendarUtils;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -52,18 +54,36 @@ public class MyScheduleCommand extends AbstractHandler<Message> {
 	}
 
 	public static void sendInfo(long userId) {
-		SMessage.of(userId).text("""
-				В этом разделе можно посмотреть своё расписание на день или на неделю.
-				Используйте кнопки для переключения вида таблица, а так же дней.
-				"""
-		).replyMarkup(Keyboards.backToMainMenu()).execute();
+		UserData data = UserData.of(userId);
+		data.setStage(UserStage.MY_SCHEDULE);
 
-		UserData.of(userId).setStage(UserStage.MY_SCHEDULE);
+		UUID id = KnasuAPI.getGroups().getGroupIdByGroupName(Objects.requireNonNull(data.getGroup()));
+		assert id != null;
 
 		// Предварительно очищаем сессию
 		sessions.remove(userId);
 
-		updateSchedule(userId, -1, CalendarUtils.getMondayOfCurrentWeek(), true, true);
+		SMessage.of(userId).text("""
+				🗓️ Добро пожаловать в раздел *Моё расписание*!
+				
+				Здесь вы можете просматривать и управлять своим расписанием. Используйте кнопки для навигации и изменения формата отображения.
+				
+				Если вам нужна подробная инструкция, используйте /help.
+				
+				Приятного использования! 🚀
+				"""
+		).replyMarkup(Keyboards.backToMainMenu()).execute();
+
+		SMessage.of(userId).text("""
+						🌐 Хотите просмотреть расписание в браузере?
+						
+						Нажмите кнопку ниже, чтобы открыть страницу с вашим расписанием в браузере. Это удобно для более детального просмотра или печати
+						""")
+				.replyMarkup(new InlineKeyboardMarkup(new InlineKeyboardButton("Открыть")
+						.url("https://knastu.ru/students/schedule/" + id + "?day=" + CalendarUtils.getCurrentDay()))
+				).execute();
+
+		updateSchedule(userId, -1, CalendarUtils.getCurrentDay(), true, true);
 	}
 
 	public static void updateSchedule(long userId, int messageId, @NonNull String selectedDate, boolean daily, boolean apply) {
@@ -84,6 +104,7 @@ public class MyScheduleCommand extends AbstractHandler<Message> {
 			assert id != null;
 
 			ScheduleResponse schedule = KnasuAPI.getGroupSchedule(id, selectedDate);
+
 			byte[] bytes = ScheduleTableRenderer.render(schedule, daily ? CalendarUtils.removeYearFromDate(selectedDate) : null);
 
 			if (messageId == -1) {

@@ -49,6 +49,8 @@ public final class KnasuStudy {
 		this.userDataStorage = new UserDataStorage();
 
 		this.telegramManager = new TelegramManager();
+
+		log.info("Запущено!");
 	}
 
 }

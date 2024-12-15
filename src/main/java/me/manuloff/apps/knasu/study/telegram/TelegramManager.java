@@ -40,25 +40,31 @@ public final class TelegramManager {
 
 		this.bot.setUpdatesListener(new UpdatesRouter(this));
 
+		this.registerHandlers();
+	}
+
+	private void registerHandlers() {
+		// Инициализация
 		this.registerHandler(new InitialHandler());
 
 		// Выбор группы
 		this.registerHandler(new GroupSelectionMessage());
 		this.registerHandler(new GroupSelectionCallback());
 
-		// Моё расписание
+		// Обработка команд
+		this.registerHandler(new StartCommand());
 		this.registerHandler(new MyScheduleCommand());
+		this.registerHandler(new TeacherScheduleCommand());
+
+		// Моё расписание
 		this.registerHandler(new MyScheduleMessage());
 		this.registerHandler(new MyScheduleCallback());
 
 		// Расписание преподавателя
-		this.registerHandler(new TeacherScheduleCommand());
 		this.registerHandler(new TeacherScheduleMessage());
 		this.registerHandler(new TeacherScheduleCallback());
 		this.registerHandler(new TeacherSelectionMessage());
 		this.registerHandler(new TeacherSelectionCallback());
-
-		this.registerHandler(new StartCommand());
 	}
 
 	private void registerHandler(@NonNull AbstractHandler<?> handler) {
@@ -67,12 +73,13 @@ public final class TelegramManager {
 
 	public void showCommandsFor(long chatId) {
 		SetMyCommands commands = new SetMyCommands(
-				new BotCommand("/start", "Вызывает начальное меню"),
-				new BotCommand("/my_schedule", "Показывает Ваше расписание"),
+				new BotCommand("/start", "Вызывает начальное меню бота"),
+				new BotCommand("/my_schedule", "Показывает ваше расписание"),
 				new BotCommand("/teacher_schedule", "Показывает расписание преподавателей"),
-				new BotCommand("/working_program", "Показывает информацию о Ваших рабочих программах"),
+				new BotCommand("/working_program", "Показывает информацию о ваших рабочих программах"),
 				new BotCommand("/academic_calendar", "Показывает Ваш календарный учебный график"),
-				new BotCommand("/materials", "Показывает методические материалы для Вас")
+				new BotCommand("/materials", "Показывает методические материалы для Вас"),
+				new BotCommand("/help", "Помощь в использовании бота")
 		);
 		commands.scope(new BotCommandsScopeChat(chatId));
 

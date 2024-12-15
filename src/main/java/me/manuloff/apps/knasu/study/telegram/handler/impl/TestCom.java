@@ -33,8 +33,6 @@ public class TestCom extends MessageHandler {
 				SendPhoto request = new SendPhoto(message.chat().id(), FILE).caption("Hello World!!")
 						.replyMarkup(new InlineKeyboardMarkup(new InlineKeyboardButton("1").callbackData("1")));
 				SendResponse response = this.bot().execute(request);
-				System.out.println("response.description() = " + response.description());
-				System.out.println("response = " + response);
 				this.messageId = response.message().messageId();
 			}
 			case "editCaption" -> {
@@ -43,13 +41,11 @@ public class TestCom extends MessageHandler {
 						.caption("Hellooo ooooo")
 						.replyMarkup(new InlineKeyboardMarkup(new InlineKeyboardButton("2").callbackData("2")));
 				BaseResponse response = this.bot().execute(request);
-				System.out.println("response = " + response);
 			}
 			case "editPhoto" -> {
 				EditMessageMedia request = new EditMessageMedia(message.chat().id(), this.messageId, new InputMediaPhoto(new File("photo_1.jpg")))
 						.replyMarkup(new InlineKeyboardMarkup(new InlineKeyboardButton("3").callbackData("3")));
 				BaseResponse response = this.bot().execute(request);
-				System.out.println("response = " + response);
 			}
 		}
 	}

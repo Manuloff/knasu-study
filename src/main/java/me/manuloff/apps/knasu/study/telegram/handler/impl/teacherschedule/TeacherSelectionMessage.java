@@ -28,7 +28,6 @@ public class TeacherSelectionMessage extends MessageHandler {
 		String text = message.text();
 		long userId = message.from().id();
 
-		System.out.println("hey?");
 
 		if (text.equalsIgnoreCase("Вернуться в главное меню")) {
 			TeacherScheduleCommand.removeMessageFromSession(userId);
@@ -55,6 +54,7 @@ public class TeacherSelectionMessage extends MessageHandler {
 		TeachersResponse response = KnasuAPI.getTeachers();
 		Set<String> teachers = new LinkedHashSet<>();
 
+		// Для чудо-пользователей
 		TeachersResponse.Teacher teacher = response.getByFullName(query);
 		if (teacher != null) {
 			teachers.add(teacher.getFullName());

@@ -40,7 +40,6 @@ public class ScheduleTable {
 		}
 
 		Timings.reset();
-		System.out.println("Done!");
 	}
 
 }

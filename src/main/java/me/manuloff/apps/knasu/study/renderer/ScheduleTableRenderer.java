@@ -4,6 +4,7 @@ import com.suke.jtable.Rect;
 import com.suke.jtable.TextAlign;
 import com.suke.jtable.graphics.FontStyle;
 import lombok.NonNull;
+import lombok.SneakyThrows;
 import me.manuloff.apps.knasu.study.api.response.ScheduleResponse;
 import org.jetbrains.annotations.Nullable;
 
@@ -17,14 +18,17 @@ import java.util.Objects;
  */
 public final class ScheduleTableRenderer extends AbstractTableRenderer {
 
+	@SneakyThrows
 	private ScheduleTableRenderer(@NonNull ScheduleResponse groupSchedule, @Nullable String date) {
-		this.table.setFontName("Roboto")
+		this.table
+				.setFontName("Roboto")
 				.setCellPadding(new Rect(20, 0))
 				.setFontSize(18)
 				.setTextAlign(TextAlign.CENTER);
 
 		for (int i = 0; i < 4; i++) {
 			this.table.getRow(i).setCellBackground(new Color(0xE9E9E9))
+					.setCellPadding(new Rect(50, 0))
 					.setFontStyle(FontStyle.BOLD)
 					.setFontSize(22);
 		}

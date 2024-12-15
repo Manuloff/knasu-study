@@ -6,7 +6,6 @@ import me.manuloff.apps.knasu.study.data.UserStage;
 import me.manuloff.apps.knasu.study.telegram.handler.CallbackHandler;
 import me.manuloff.apps.knasu.study.telegram.method.DMessage;
 import me.manuloff.apps.knasu.study.util.DataEntry;
-import org.apache.pdfbox.pdmodel.PDDocument;
 
 /**
  * @author Manuloff
