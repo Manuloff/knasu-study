@@ -17,6 +17,10 @@ public class MyScheduleCallback extends CallbackHandler {
 
 	@Override
 	protected void handleCallback(@NonNull CallbackQuery callback, @NonNull DataEntry dataEntry) {
+		if (dataEntry.size() != 3 || dataEntry.getString(0).equalsIgnoreCase("ignore")) {
+			return;
+		}
+
 		MyScheduleCommand.updateSchedule(
 				callback.from().id(),
 				callback.maybeInaccessibleMessage().messageId(),

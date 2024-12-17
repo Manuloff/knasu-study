@@ -67,7 +67,7 @@ public final class TeachersResponse {
 
 		for (Teacher teacher : this.teachers) {
 			double similarity = this.calculateSimilarity(teacher.getFullName(), query);
-			if (similarity > 30) {
+			if (similarity > 20) {
 				similarityMap.put(teacher, similarity);
 			}
 		}

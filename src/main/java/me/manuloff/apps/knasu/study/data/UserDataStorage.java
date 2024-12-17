@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit;
  */
 public final class UserDataStorage {
 
-	private static final long CACHE_LIFE_TIME = TimeUnit.MINUTES.toMillis(15);
+	private static final long CACHE_LIFE_TIME = TimeUnit.HOURS.toMillis(4);
 
 	private final Map<Long, UserData> storage = new ConcurrentHashMap<>();
 

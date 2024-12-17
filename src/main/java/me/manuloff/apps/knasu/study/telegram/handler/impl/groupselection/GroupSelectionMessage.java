@@ -3,6 +3,7 @@ package me.manuloff.apps.knasu.study.telegram.handler.impl.groupselection;
 import com.pengrad.telegrambot.model.Message;
 import lombok.NonNull;
 import me.manuloff.apps.knasu.study.api.KnasuAPI;
+import me.manuloff.apps.knasu.study.data.UserData;
 import me.manuloff.apps.knasu.study.data.UserStage;
 import me.manuloff.apps.knasu.study.telegram.Keyboards;
 import me.manuloff.apps.knasu.study.telegram.handler.MessageHandler;
@@ -25,23 +26,34 @@ public final class GroupSelectionMessage extends MessageHandler {
 
 		if (fixedGroupName == null) {
 			SMessage.of(message).text("""
-					К сожалению, мы не смогли найти группу с названием «%s». 😕
-					
-					Пожалуйста, проверь правильность написания или попробуй выбрать группу через меню.
+					🚫 Группа с именем *%s* не найдена. Пожалуйста, проверьте правильность ввода и попробуйте ещё раз.
 					""", text).execute();
 			return;
 		}
 
-		this.userData(message).setGroup(fixedGroupName);
-		this.userData(message).setStage(UserStage.MAIN_MENU);
+		UserData data = this.userData(message);
+		boolean firstStart = data.getGroup() == null;
 
-		this.manager().showCommandsFor(message.from().id());
+		data.setGroup(fixedGroupName);
+		data.setStage(UserStage.MAIN_MENU);
 
-		SMessage.of(message).text("""
-				Отлично! Мы нашли твою группу: «%s». 🎉
-				
-				Теперь ты можешь пользоваться всеми функциями бота.
-				""", fixedGroupName)
-				.replyMarkup(Keyboards.mainKeyboard()).execute();
+		String msg;
+
+		if (firstStart) {
+			this.manager().showBotCommandFor(message.from().id());
+
+			msg = """
+							✅ Вы успешно выбрали группу: *%s*.
+							
+							Теперь вы можете воспользоваться всеми моими возможностями. Приятного использования! 😊
+							""";
+		} else {
+			msg = """
+							✅ Вы успешно выбрали группу: *%s*.
+							""";
+		}
+
+		SMessage.of(message).text(msg, fixedGroupName)
+				.replyMarkup(Keyboards.mainMenu()).execute();
 	}
 }

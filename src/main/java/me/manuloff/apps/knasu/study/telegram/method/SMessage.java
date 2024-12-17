@@ -24,7 +24,7 @@ public final class SMessage extends MethodExecutor<SendMessage, SendResponse> {
 
 	private String text;
 
-	private ParseMode parseMode;
+	private ParseMode parseMode = ParseMode.Markdown;
 	private MessageEntity[] entities;
 	private LinkPreviewOptions linkPreviewOptions;
 	private String messageEffectId;

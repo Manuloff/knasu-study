@@ -15,8 +15,7 @@ import me.manuloff.apps.knasu.study.data.UserData;
 import me.manuloff.apps.knasu.study.data.UserStage;
 import me.manuloff.apps.knasu.study.renderer.ScheduleTableRenderer;
 import me.manuloff.apps.knasu.study.telegram.Keyboards;
-import me.manuloff.apps.knasu.study.telegram.handler.AbstractHandler;
-import me.manuloff.apps.knasu.study.telegram.handler.HandlerType;
+import me.manuloff.apps.knasu.study.telegram.handler.CommandHandler;
 import me.manuloff.apps.knasu.study.telegram.method.DMessage;
 import me.manuloff.apps.knasu.study.telegram.method.SMessage;
 import me.manuloff.apps.knasu.study.util.CalendarUtils;
@@ -29,33 +28,23 @@ import java.util.Map;
  * @author Manuloff
  * @since 21:44 14.12.2024
  */
-public class TeacherScheduleCommand extends AbstractHandler<Message> {
+public class TeacherScheduleCommand extends CommandHandler {
 
 	public static Map<Long, Session> sessions = new HashMap<>();
 
 	public TeacherScheduleCommand() {
-		super(HandlerType.MESSAGE, null);
+		super("/teacher_schedule", "\uD83D\uDC68\u200D\uD83C\uDFEB Расписание преподавателей");
 	}
 
 	@Override
-	protected boolean handle(@NonNull Message update) {
-		String text = update.text();
-
-		if (text.equalsIgnoreCase("/teacher_schedule")
-			|| (this.userData(update).getStage() == UserStage.MAIN_MENU && text.equalsIgnoreCase("Расписание преподавателей"))) {
-
-			teacherSelection(update.from().id());
-
-			return true;
-		}
-
-		return false;
+	public void handleCommand(@NonNull Message message) {
+		teacherSelection(message.from().id());
 	}
 
 	public static void teacherSelection(long userId) {
-		SMessage.of(userId).text("Выбери преподавателя, чьё расписание ты хочешь посмотреть. " +
-				"Для этого введи любой фрагмент текста (имя, фамилию, отчество или другую часть данных), " +
-				"и я найду подходящие варианты.")
+		SMessage.of(userId).text("""
+						🔍 Выберите преподавателя, чье расписание хотите просмотреть. Введите фрагмент имени, и я найду соответствующего преподавателя для вас.
+						""")
 				.replyMarkup(Keyboards.backToMainMenu()).execute();
 
 		sessions.put(userId, new Session());
@@ -66,7 +55,9 @@ public class TeacherScheduleCommand extends AbstractHandler<Message> {
 		List<String> recentTeachers = data.getRecentTeachers();
 
 		if (!recentTeachers.isEmpty()) {
-			SMessage.of(userId).text("Также ты можешь выбрать из недавних преподавателей, которых уже искал:")
+			SMessage.of(userId).text("""
+							🕒 Так же вы можете выбрать одного из недавних преподавателей, чье расписание уже искали.
+							""")
 					.replyMarkup(Keyboards.teacherSelection(recentTeachers)).execute();
 		}
 	}
@@ -122,6 +113,7 @@ public class TeacherScheduleCommand extends AbstractHandler<Message> {
 		Session session = sessions.get(userId);
 		if (session != null && session.messageId != -1) {
 			DMessage.of(userId, session.messageId).execute();
+			session.messageId = -1;
 		}
 	}
 }

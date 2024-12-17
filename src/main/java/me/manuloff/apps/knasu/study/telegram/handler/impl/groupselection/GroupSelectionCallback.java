@@ -7,6 +7,7 @@ import me.manuloff.apps.knasu.study.data.UserData;
 import me.manuloff.apps.knasu.study.data.UserStage;
 import me.manuloff.apps.knasu.study.telegram.Keyboards;
 import me.manuloff.apps.knasu.study.telegram.handler.CallbackHandler;
+import me.manuloff.apps.knasu.study.telegram.method.ACallback;
 import me.manuloff.apps.knasu.study.telegram.method.DMessage;
 import me.manuloff.apps.knasu.study.telegram.method.EMessage;
 import me.manuloff.apps.knasu.study.telegram.method.SMessage;
@@ -35,16 +36,19 @@ public final class GroupSelectionCallback extends CallbackHandler {
 
 				List<String> enrollmentYears = KnasuAPI.getGroups().getEnrollmentYears(faculty);
 				if (enrollmentYears == null || enrollmentYears.isEmpty()) {
-					this.sendErrorMessage(callback);
+					ACallback.of(callback)
+							.text("🚨 К сожалению, произошла ошибка при получении списка годов поступления. Пожалуйста, попробуйте позже.")
+							.showAlert(true)
+							.execute();
 					return;
 				}
 
 				EMessage.of(callback).text("""
-						Отлично! Ты выбрал факультет «%s». 🎓
+						🎓 Вы выбрали факультет: *%s*.
 						
-						Теперь выбери год набора.
+						Теперь пожалуйста, выберите год набора. Вот доступные варианты:
 						""", faculty)
-						.replyMarkup(Keyboards.enrollmentYearsKeyboard(entry, enrollmentYears)).execute();
+						.replyMarkup(Keyboards.enrollmentYears(entry, enrollmentYears)).execute();
 			}
 			case 1 -> {
 				String faculty = entry.getString(1);
@@ -52,45 +56,60 @@ public final class GroupSelectionCallback extends CallbackHandler {
 
 				List<String> groups = KnasuAPI.getGroups().getGroupsBy(faculty, enrollmentYear);
 				if (groups == null || groups.isEmpty()) {
-					this.sendErrorMessage(callback);
+					ACallback.of(callback)
+							.text("🚨 К сожалению, произошла ошибка при получении списка групп. Пожалуйста, попробуйте позже.")
+							.showAlert(true)
+							.execute();
 					return;
 				}
 
 				EMessage.of(callback).text("""
-						Отлично! Ты выбрал факультет «%s» и год набора «%s». 🎓
+						📅 Вы выбрали год набора: *%s*.
 						
-						Теперь выбери свою учебную группу.
-						""", faculty, enrollmentYear)
-						.replyMarkup(Keyboards.groupsKeyboard(groups)).execute();
+						Теперь пожалуйста, выберите вашу учебную группу из списка ниже:
+						""", enrollmentYear)
+						.replyMarkup(Keyboards.groups(groups))
+						.execute();
 			}
 			case 2 -> {
 				String group = entry.getString(1);
 
 				UUID id = KnasuAPI.getGroups().getGroupIdByGroupName(group);
 				if (id == null) {
-					this.sendErrorMessage(callback);
+					ACallback.of(callback)
+							.text("🚨 К сожалению, произошла ошибка при получении списка групп. Пожалуйста, попробуйте позже.")
+							.showAlert(true)
+							.execute();
 					return;
 				}
 
 				UserData data = this.userData(callback);
+				boolean firstStart = data.getGroup() == null;
+
 				data.setGroup(group);
 				data.setStage(UserStage.MAIN_MENU);
 
-				this.manager().showCommandsFor(callback.from().id());
+				String text;
+
+				if (firstStart) {
+					this.manager().showBotCommandFor(callback.from().id());
+
+					text = """
+							✅ Вы успешно выбрали группу: *%s*.
+							
+							Теперь вы можете воспользоваться всеми моими возможностями. Приятного использования! 😊
+							""";
+				} else {
+					text = """
+							✅ Вы успешно выбрали группу: *%s*.
+							""";
+				}
 
 				DMessage.of(callback).execute();
-				SMessage.of(callback).text("""
-						Отлично! Мы нашли твою группу: «%s». 🎉
-				
-						Теперь ты можешь пользоваться всеми функциями бота.
-						""", group)
-						.replyMarkup(Keyboards.mainKeyboard()).execute();
+				SMessage.of(callback).text(text, group)
+						.replyMarkup(Keyboards.mainMenu()).execute();
 			}
 			default -> throw new IllegalStateException("Unexpected value: " + entry.getInt(0));
 		}
-	}
-
-	private void sendErrorMessage(@NonNull CallbackQuery callback) {
-		EMessage.of(callback).text("\uD83D\uDE15 Произошла ошибка. Попробуй ещё раз или обратись к администратору.").execute();
 	}
 }

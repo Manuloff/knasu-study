@@ -26,6 +26,10 @@ public class TeacherScheduleCallback extends CallbackHandler {
 			return;
 		}
 
+		if (dataEntry.size() != 4 || dataEntry.getString(0).equalsIgnoreCase("ignore")) {
+			return;
+		}
+
 		TeacherScheduleCommand.updateSchedule(
 				userId,
 				callback.maybeInaccessibleMessage().messageId(),

@@ -11,8 +11,10 @@ import technology.tabula.PageIterator;
 import technology.tabula.Table;
 import technology.tabula.extractors.SpreadsheetExtractionAlgorithm;
 
+import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -34,7 +36,7 @@ public class AcademicCalendarResponse {
 
 	private static final SpreadsheetExtractionAlgorithm ALGORITHM = new SpreadsheetExtractionAlgorithm();
 
-	private final List<BufferedImage> images = new LinkedList<>();
+	private final List<byte[]> images = new LinkedList<>();
 
 	@SneakyThrows
 	public AcademicCalendarResponse(@NonNull PDDocument document) {
@@ -54,7 +56,12 @@ public class AcademicCalendarResponse {
 				Rectangle bounds = table.getBounds();
 				BufferedImage tableImage = bufferedImage.getSubimage(bounds.x - 3, bounds.y - 3, bounds.width + 6, bounds.height + 6);
 
-				this.images.add(tableImage);
+				try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+					ImageIO.write(tableImage, "PNG", out);
+
+					this.images.add(out.toByteArray());
+				}
+
 			}
 		}
 	}

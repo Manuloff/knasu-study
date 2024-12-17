@@ -5,13 +5,14 @@ import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import com.pengrad.telegrambot.model.request.ReplyKeyboardMarkup;
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
+import me.manuloff.apps.knasu.study.api.response.WorkingStudyPlanResponse;
 import me.manuloff.apps.knasu.study.util.CalendarUtils;
 import me.manuloff.apps.knasu.study.util.DataEntry;
-import me.manuloff.apps.knasu.study.util.InlineKeyboardBuilder;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Manuloff
@@ -21,7 +22,7 @@ import java.util.List;
 public class Keyboards {
 
 	@NonNull
-	public static InlineKeyboardMarkup facultiesKeyboard(@NonNull List<String> faculties) {
+	public static InlineKeyboardMarkup faculties(@NonNull List<String> faculties) {
 		List<InlineKeyboardButton> buttons = new LinkedList<>();
 
 		for (String faculty : faculties) {
@@ -30,11 +31,11 @@ public class Keyboards {
 			);
 		}
 
-		return InlineKeyboardBuilder.pretty(buttons, 3);
+		return pretty(buttons, 3);
 	}
 
 	@NonNull
-	public static InlineKeyboardMarkup enrollmentYearsKeyboard(@NonNull DataEntry entry, @NonNull List<String> enrollmentYears) {
+	public static InlineKeyboardMarkup enrollmentYears(@NonNull DataEntry entry, @NonNull List<String> enrollmentYears) {
 		List<InlineKeyboardButton> buttons = new LinkedList<>();
 		for (String year : enrollmentYears) {
 			buttons.add(new InlineKeyboardButton(year)
@@ -42,11 +43,11 @@ public class Keyboards {
 			);
 		}
 
-		return InlineKeyboardBuilder.pretty(buttons, 3);
+		return pretty(buttons, 3);
 	}
 
 	@NonNull
-	public static InlineKeyboardMarkup groupsKeyboard(@NonNull List<String> groups) {
+	public static InlineKeyboardMarkup groups(@NonNull List<String> groups) {
 		List<InlineKeyboardButton> buttons = new LinkedList<>();
 
 		for (String group : groups) {
@@ -55,15 +56,15 @@ public class Keyboards {
 			);
 		}
 
-		return InlineKeyboardBuilder.pretty(buttons, 5);
+		return pretty(buttons, 4);
 	}
 
-	public static ReplyKeyboardMarkup mainKeyboard() {
+	public static ReplyKeyboardMarkup mainMenu() {
 		ReplyKeyboardMarkup markup = new ReplyKeyboardMarkup(new String[] {});
 
-		markup.addRow("Моё расписание", "Расписание преподавателей");
-		markup.addRow("Рабочие программы", "График учебного процесса", "Полезные материалы");
-		markup.addRow("Настройки");
+		markup.addRow("👤 Моё расписание", "👨‍🏫 Расписание преподавателей");
+		markup.addRow("📚 Рабочие программы", "📅 Учебный график", "📋 Полезные материалы");
+		markup.addRow("⚙️ Изменить учебную группу");
 		
 		markup.resizeKeyboard(true);
 
@@ -72,7 +73,12 @@ public class Keyboards {
 
 	@NonNull
 	public static ReplyKeyboardMarkup backToMainMenu() {
-		return new ReplyKeyboardMarkup("Вернуться в главное меню").resizeKeyboard(true);
+		return new ReplyKeyboardMarkup("🏠 Вернуться в главное меню").resizeKeyboard(true);
+	}
+
+	@NonNull
+	public static InlineKeyboardMarkup openUrl(@NonNull String text, @NonNull String url) {
+		return new InlineKeyboardMarkup(new InlineKeyboardButton(text).url(url));
 	}
 
 	@NonNull
@@ -89,12 +95,12 @@ public class Keyboards {
 			currentPeriod = selectedDate;
 		} else {
 			String from = CalendarUtils.getMondayOfWeek(selectedDate);
-			String to = CalendarUtils.plusDays(from, 7);
+			String to = CalendarUtils.plusDays(from, 6);
 
 			currentPeriod = from + " - " + to;
 		}
 
-		markup.addRow(new InlineKeyboardButton("📅 " + currentPeriod).callbackData(data.deepCopy().asString()));
+		markup.addRow(new InlineKeyboardButton("📅 " + currentPeriod).callbackData("ignore"));
 
 		markup.addRow(
 				new InlineKeyboardButton("◀️ " + (daily ? "Пред. день" : "Пред. неделя"))
@@ -108,11 +114,12 @@ public class Keyboards {
 		}
 
 		if (teacherId != null) {
-			markup.addRow(new InlineKeyboardButton("Вернуться к выбору преподавателя").callbackData("backToTeachers"));
+			markup.addRow(new InlineKeyboardButton("Вернуться к выбору преподавателя ↩️").callbackData("backToTeachers"));
 		}
 
 		return markup;
 	}
+
 
 	@NonNull
 	public static InlineKeyboardMarkup teacherSelection(@NonNull List<String> recentTeachers) {
@@ -124,6 +131,86 @@ public class Keyboards {
 			String teacher = recentTeachers.get(i);
 
 			markup.addRow(new InlineKeyboardButton(teacher).callbackData(teacher));
+		}
+
+		return markup;
+	}
+
+	//
+
+	@NonNull
+	public static InlineKeyboardMarkup periodSelection(@NonNull WorkingStudyPlanResponse response) {
+		InlineKeyboardMarkup markup = pretty(response.getPeriods().stream().map(period -> {
+			return new InlineKeyboardButton(period.getName()).callbackData(DataEntry.of("period", period.getName()).asString());
+		}).collect(Collectors.toList()), 3);
+
+		if (response.getStateExam() != null) {
+			markup.addRow(new InlineKeyboardButton("Государственная итоговая аттестация").callbackData("exam"));
+		}
+
+		return markup;
+	}
+
+	@NonNull
+	public static InlineKeyboardMarkup programSelection(@NonNull String period, @NonNull List<WorkingStudyPlanResponse.Program> programs) {
+		InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
+
+		for (int i = 0; i < programs.size(); i++) {
+			WorkingStudyPlanResponse.Program program = programs.get(i);
+
+			// Название некоторых программ настолько длинное, что они просто не влезут в callbackData, поэтому используем индекс
+			markup.addRow(new InlineKeyboardButton(program.getName()).callbackData(DataEntry.of("program", i, period).asString()));
+		}
+
+		markup.addRow(new InlineKeyboardButton("Вернуться назад").callbackData("backToPeriods"));
+
+		return markup;
+	}
+
+	@NonNull
+	public static InlineKeyboardMarkup exam(@NonNull String programUrl) {
+		InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
+
+		markup.addRow(new InlineKeyboardButton("Программа").url(programUrl));
+		markup.addRow(new InlineKeyboardButton("Вернуться назад").callbackData("backToPeriods"));
+
+		return markup;
+	}
+
+	@NonNull
+	public static InlineKeyboardMarkup program(@NonNull WorkingStudyPlanResponse.Program program, @NonNull String period) {
+		InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
+
+		markup.addRow(new InlineKeyboardButton("Аннотация").url("https://knastu.ru" + program.getAnnotation()));
+		markup.addRow(new InlineKeyboardButton("Рабочая программа дисциплины").url("https://knastu.ru" + program.getWorkingProgramDiscipline()));
+		if (program.getAssessmentResources() != null) {
+			markup.addRow(new InlineKeyboardButton("Фонд оценочных средств").url("https://knastu.ru" + program.getAssessmentResources()));
+		}
+		markup.addRow(new InlineKeyboardButton("Вернуться назад").callbackData(DataEntry.of("backToPrograms", period).asString()));
+
+		return markup;
+	}
+
+	//
+
+	private static InlineKeyboardMarkup pretty(@NonNull List<InlineKeyboardButton> buttons, int rowSize) {
+		if (rowSize < 1) throw new RuntimeException();
+
+		InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
+
+		List<InlineKeyboardButton> row = new LinkedList<>();
+
+		for (InlineKeyboardButton button : buttons) {
+			row.add(button);
+
+			if (row.size() == rowSize) {
+				markup.addRow(row.toArray(new InlineKeyboardButton[0]));
+				row.clear();
+			}
+		}
+
+		if (!row.isEmpty()) {
+			markup.addRow(row.toArray(new InlineKeyboardButton[0]));
 		}
 
 		return markup;

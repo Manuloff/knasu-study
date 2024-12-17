@@ -5,8 +5,8 @@ import lombok.NonNull;
 import me.manuloff.apps.knasu.study.data.UserStage;
 import me.manuloff.apps.knasu.study.telegram.handler.MessageHandler;
 import me.manuloff.apps.knasu.study.telegram.handler.impl.StartCommand;
-import me.manuloff.apps.knasu.study.telegram.method.DMessage;
 import me.manuloff.apps.knasu.study.telegram.method.SMessage;
+import me.manuloff.apps.knasu.study.util.CalendarUtils;
 
 import java.util.regex.Pattern;
 
@@ -25,32 +25,27 @@ public class TeacherScheduleMessage extends MessageHandler {
 	@Override
 	public void handleMessage(@NonNull Message message) {
 		String text = message.text();
-		long id = message.from().id();
+		long userId = message.from().id();
 
-		if (text.equalsIgnoreCase("Вернуться в главное меню")) {
-			TeacherScheduleCommand.Session session = TeacherScheduleCommand.sessions.get(id);
-			int messageId = session.getMessageId();
-			if (messageId != -1) {
-				DMessage.of(id, messageId).execute();
-				session.setMessageId(-1);
-			}
-
-			StartCommand.send(id);
+		if (text.equalsIgnoreCase("🏠 Вернуться в главное меню")) {
+			TeacherScheduleCommand.removeMessageFromSession(userId);
+			StartCommand.send(userId);
 			return;
 		}
 
 		if (DATE_PATTERN.matcher(text).find()) {
-			TeacherScheduleCommand.Session session = TeacherScheduleCommand.sessions.get(id);
-			int messageId = session.getMessageId();
-			if (messageId != -1) {
-				DMessage.of(id, messageId).execute();
-				session.setMessageId(-1);
-			}
+			TeacherScheduleCommand.removeMessageFromSession(userId);
+			TeacherScheduleCommand.Session session = TeacherScheduleCommand.sessions.get(userId);
 
-			TeacherScheduleCommand.updateSchedule(id, messageId, session.getTeacherId(), text, session.isDaily(), true);
+			int messageId = SMessage.of(message).text("⏳ Расписание на дату *%s* загружается. Пожалуйста, подождите...", text)
+					.execute().message().messageId();
+
+			TeacherScheduleCommand.updateSchedule(userId, messageId, session.getTeacherId(), text, session.isDaily(), true);
 			return;
 		}
 
-		SMessage.of(message).text("Неизвестный формат. Используйте \"дд.мм.гггг\"").execute();
+		SMessage.of(message).text("""
+				❌ Введенная дата не распознана. Пожалуйста, используйте правильный формат: `дд.мм.гггг` (например, %s).
+				""", CalendarUtils.getCurrentDay()).execute();
 	}
 }

@@ -29,24 +29,30 @@ public class TeacherSelectionMessage extends MessageHandler {
 		long userId = message.from().id();
 
 
-		if (text.equalsIgnoreCase("Вернуться в главное меню")) {
+		if (text.equalsIgnoreCase("🏠 Вернуться в главное меню")) {
 			TeacherScheduleCommand.removeMessageFromSession(userId);
 			StartCommand.send(userId);
 			return;
 		}
 
 		if (text.length() < 5) {
-			SMessage.of(message).text("Ваш запрос слишком короткий. Минимальная длина запроса - 5 символов").execute();
+			SMessage.of(message).text("""
+					⚠️ Ваш запрос слишком короткий. Пожалуйста, введите минимум 5 символов для поиска.
+					""").execute();
 			return;
 		}
 
 		Set<String> teachers = this.findTeachers(text);
 		if (teachers.isEmpty()) {
-			SMessage.of(message).text("По запросу \"%s\" не удалось найти никаких преподавателей", text).execute();
+			SMessage.of(message).text("""
+					❌ По вашему запросу *%s* не удалось найти ни одного преподавателя. Попробуйте изменить запрос или уточнить его.
+					""", text).execute();
 			return;
 		}
 
-		SMessage.of(message).text("По запросу \"%s\" нашлось %s совпадений:", text, Math.min(teachers.size(), 8))
+		SMessage.of(message).text("""
+						🔍 По вашему запросу *%s* найдено %s совпадений. Выберите нужного преподавателя из списка.
+						""", text, Math.min(teachers.size(), 8))
 				.replyMarkup(Keyboards.teacherSelection(teachers.stream().toList())).execute();
 	}
 

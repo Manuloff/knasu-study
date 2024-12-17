@@ -1,7 +1,6 @@
 package me.manuloff.apps.knasu.study.telegram.handler.impl.myschedule;
 
 import com.pengrad.telegrambot.model.Message;
-import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
 import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import com.pengrad.telegrambot.model.request.InputMediaPhoto;
 import com.pengrad.telegrambot.request.EditMessageCaption;
@@ -16,8 +15,8 @@ import me.manuloff.apps.knasu.study.data.UserData;
 import me.manuloff.apps.knasu.study.data.UserStage;
 import me.manuloff.apps.knasu.study.renderer.ScheduleTableRenderer;
 import me.manuloff.apps.knasu.study.telegram.Keyboards;
-import me.manuloff.apps.knasu.study.telegram.handler.AbstractHandler;
-import me.manuloff.apps.knasu.study.telegram.handler.HandlerType;
+import me.manuloff.apps.knasu.study.telegram.handler.CommandHandler;
+import me.manuloff.apps.knasu.study.telegram.method.DMessage;
 import me.manuloff.apps.knasu.study.telegram.method.SMessage;
 import me.manuloff.apps.knasu.study.util.CalendarUtils;
 
@@ -30,58 +29,53 @@ import java.util.UUID;
  * @author Manuloff
  * @since 16:06 14.12.2024
  */
-public class MyScheduleCommand extends AbstractHandler<Message> {
+public class MyScheduleCommand extends CommandHandler {
 
 	public static final Map<Long, Session> sessions = new HashMap<>();
 
 	public MyScheduleCommand() {
-		super(HandlerType.MESSAGE, null);
+		super("/my_schedule", "\uD83D\uDC64 Моё расписание");
 	}
 
 	@Override
-	protected boolean handle(@NonNull Message update) {
-		String text = update.text();
+	public void handleCommand(@NonNull Message message) {
+		long userId = message.from().id();
 
-		if (text.equalsIgnoreCase("/my_schedule")
-			|| (this.userData(update).getStage() == UserStage.MAIN_MENU && text.equalsIgnoreCase("Моё расписание"))) {
-
-			sendInfo(update.from().id());
-
-			return true;
-		}
-
-		return false;
-	}
-
-	public static void sendInfo(long userId) {
 		UserData data = UserData.of(userId);
 		data.setStage(UserStage.MY_SCHEDULE);
-
-		UUID id = KnasuAPI.getGroups().getGroupIdByGroupName(Objects.requireNonNull(data.getGroup()));
-		assert id != null;
 
 		// Предварительно очищаем сессию
 		sessions.remove(userId);
 
 		SMessage.of(userId).text("""
-				🗓️ Добро пожаловать в раздел *Моё расписание*!
+				📅 Ваше расписание генерируется.
 				
-				Здесь вы можете просматривать и управлять своим расписанием. Используйте кнопки для навигации и изменения формата отображения.
+				1️⃣ *Переключение формата отображения*:
+				Нажмите на кнопку `День` или `Неделя`, чтобы переключаться между расписанием на один день и расписанием на всю неделю.
 				
-				Если вам нужна подробная инструкция, используйте /help.
+				2️⃣ *Просмотр текущего периода*:
+				Кнопка показывает выбранную дату или диапазон, в зависимости от выбранного формата отображения.
+				
+				3️⃣ *Навигация по расписанию*:
+				Используйте кнопки `Пред. день/неделя` и `Следующий день/неделя`, чтобы переходить к нужной дате.
+				
+				4️⃣ *Изменение параметров*:
+				Если вы внесли изменения, появится кнопка `Применить изменения`. Нажмите на нее, чтобы обновить расписание.
+				
+				📅 Чтобы перейти к расписанию конкретной даты, отправьте сообщение с нужной датой в формате `дд.мм.гггг`.
 				
 				Приятного использования! 🚀
 				"""
 		).replyMarkup(Keyboards.backToMainMenu()).execute();
 
+		UUID id = KnasuAPI.getGroups().getGroupIdByGroupName(Objects.requireNonNull(data.getGroup()));
+		assert id != null;
+
 		SMessage.of(userId).text("""
-						🌐 Хотите просмотреть расписание в браузере?
-						
-						Нажмите кнопку ниже, чтобы открыть страницу с вашим расписанием в браузере. Это удобно для более детального просмотра или печати
+						🌐 Для удобства просмотра расписания вы можете открыть его в браузере. Нажмите на кнопку ниже, чтобы перейти. 🔗
 						""")
-				.replyMarkup(new InlineKeyboardMarkup(new InlineKeyboardButton("Открыть")
-						.url("https://knastu.ru/students/schedule/" + id + "?day=" + CalendarUtils.getCurrentDay()))
-				).execute();
+				.replyMarkup(Keyboards.openUrl("🌐 Открыть в браузере", "https://knastu.ru/students/schedule/" + id + "?day=" + CalendarUtils.getCurrentDay()))
+				.execute();
 
 		updateSchedule(userId, -1, CalendarUtils.getCurrentDay(), true, true);
 	}
@@ -110,7 +104,7 @@ public class MyScheduleCommand extends AbstractHandler<Message> {
 			if (messageId == -1) {
 				SendPhoto request = new SendPhoto(userId, bytes)
 						.replyMarkup(markup);
-				
+
 				messageId = KnasuStudy.getInstance().getTelegramManager().getBot().execute(request).message().messageId();
 			} else {
 				EditMessageMedia request = new EditMessageMedia(userId, messageId, new InputMediaPhoto(bytes))
@@ -132,10 +126,18 @@ public class MyScheduleCommand extends AbstractHandler<Message> {
 
 	@Data
 	public static class Session {
-		private int messageId;
+		private int messageId = -1;
 
 		private boolean daily;
 
 		private boolean lock;
+	}
+
+	public static void removeMessageFromSession(long userId) {
+		Session session = sessions.get(userId);
+		if (session != null && session.messageId != -1) {
+			DMessage.of(userId, session.messageId).execute();
+			session.messageId = -1;
+		}
 	}
 }

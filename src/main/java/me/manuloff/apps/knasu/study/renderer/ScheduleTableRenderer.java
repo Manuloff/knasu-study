@@ -4,7 +4,6 @@ import com.suke.jtable.Rect;
 import com.suke.jtable.TextAlign;
 import com.suke.jtable.graphics.FontStyle;
 import lombok.NonNull;
-import lombok.SneakyThrows;
 import me.manuloff.apps.knasu.study.api.response.ScheduleResponse;
 import org.jetbrains.annotations.Nullable;
 
@@ -18,7 +17,8 @@ import java.util.Objects;
  */
 public final class ScheduleTableRenderer extends AbstractTableRenderer {
 
-	@SneakyThrows
+
+
 	private ScheduleTableRenderer(@NonNull ScheduleResponse groupSchedule, @Nullable String date) {
 		this.table
 				.setFontName("Roboto")
@@ -26,12 +26,16 @@ public final class ScheduleTableRenderer extends AbstractTableRenderer {
 				.setFontSize(18)
 				.setTextAlign(TextAlign.CENTER);
 
+		this.table.setMargin(new Rect(0));
+
 		for (int i = 0; i < 4; i++) {
 			this.table.getRow(i).setCellBackground(new Color(0xE9E9E9))
 					.setCellPadding(new Rect(50, 0))
 					.setFontStyle(FontStyle.BOLD)
 					.setFontSize(22);
 		}
+
+
 
 //		int lastLesson = 0;
 //
@@ -49,6 +53,7 @@ public final class ScheduleTableRenderer extends AbstractTableRenderer {
 //				}
 //			}
 //		}
+
 
 		this.drawTimings(groupSchedule.getLessonTimes());
 		this.nextColumn();
@@ -88,7 +93,7 @@ public final class ScheduleTableRenderer extends AbstractTableRenderer {
 	private void drawTiming(int i, @NonNull ScheduleResponse.LessonTime lessonTime) {
 		this.cell();
 		this.cell().setText(String.valueOf(i));
-		this.cell().setText(lessonTime.getStartTime() + " -").setFontStyle(FontStyle.BOLD);
+		this.cell().setText(lessonTime.getStartTime().isEmpty() ? "" : lessonTime.getStartTime() + " -").setFontStyle(FontStyle.BOLD);
 		this.cell().setText(lessonTime.getEndTime()).setFontStyle(FontStyle.BOLD);
 		this.cell();
 		this.cell();

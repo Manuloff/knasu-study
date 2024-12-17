@@ -16,5 +16,7 @@ public enum UserStage {
 	TEACHER_SELECTION,
 	TEACHER_SCHEDULE,
 
+	WORKING_PROGRAM,
+
 	HELP
 }

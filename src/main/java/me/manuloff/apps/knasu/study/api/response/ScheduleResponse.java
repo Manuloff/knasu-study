@@ -1,6 +1,7 @@
 package me.manuloff.apps.knasu.study.api.response;
 
 import lombok.*;
+import me.manuloff.apps.knasu.study.util.CalendarUtils;
 import org.jetbrains.annotations.Nullable;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -22,8 +23,6 @@ public class ScheduleResponse {
 	private final String id;
 	private final String date;
 
-	private final String name;
-
 	private final List<LessonTime> lessonTimes = new LinkedList<>();
 	private final List<DailySchedule> dailySchedules = new LinkedList<>();
 
@@ -34,15 +33,22 @@ public class ScheduleResponse {
 		this.id = urlSplit[0];
 		this.date = urlSplit[1].replace("day=", "");
 
-		// Если на странице существует название группы/имя преподавателя, то расписание существует,
-		// иначе его попросту нет на этой неделе
-		Element groupNameElement = body.select("div.col-md-12.main_text h2").first();
-		if (groupNameElement == null) {
-			this.name = "";
+		Element table = body.selectFirst("table");
+		if (table == null) {
+			for (int i = 0; i < 8; i++) {
+				this.lessonTimes.add(new LessonTime("", ""));
+			}
+			for (int i = 0; i < 6; i++) {
+				DailySchedule schedule = new DailySchedule(CalendarUtils.removeYearFromDate(CalendarUtils.plusDays(this.date, i)), CalendarUtils.getShortName(DayOfWeek.values()[i]));
+
+				for (int j = 0; j < 8; j++) {
+					schedule.lessons.add(null);
+				}
+
+				this.dailySchedules.add(schedule);
+			}
 			return;
 		}
-
-		this.name = groupNameElement.text();
 
 		Elements headTable = body.select("thead th");
 		for (int i = 1; i < headTable.size(); i++) {

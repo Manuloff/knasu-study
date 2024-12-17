@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
  * @since 23:27 10.12.2024
  */
 @EqualsAndHashCode
-public class DataEntry implements Iterable<String> {
+public final class DataEntry implements Iterable<String> {
 
 	private final List<String> data;
 

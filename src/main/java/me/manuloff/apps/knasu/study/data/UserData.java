@@ -30,7 +30,6 @@ public final class UserData {
 
 	private UserStage stage;
 
-	@Column("recent_teachers")
 	private String recentTeachers;
 
 	@Ignore

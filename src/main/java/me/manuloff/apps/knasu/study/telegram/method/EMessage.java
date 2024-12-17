@@ -23,7 +23,7 @@ public final class EMessage extends MethodExecutor<EditMessageText, BaseResponse
 	private final int messageId;
 
 	private String text;
-	private ParseMode parseMode;
+	private ParseMode parseMode = ParseMode.Markdown;
 	private MessageEntity[] entities;
 	private LinkPreviewOptions linkPreviewOptions;
 	private InlineKeyboardMarkup replyMarkup;
@@ -32,6 +32,11 @@ public final class EMessage extends MethodExecutor<EditMessageText, BaseResponse
 	public static EMessage of(@NonNull CallbackQuery callback) {
 		MaybeInaccessibleMessage message = callback.maybeInaccessibleMessage();
 		return new EMessage(message.chat().id(), message.messageId());
+	}
+
+	@NonNull
+	public static EMessage of(long chatId, int messageId) {
+		return new EMessage(chatId, messageId);
 	}
 
 	//

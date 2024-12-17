@@ -24,32 +24,6 @@ public final class UpdatesRouter implements UpdatesListener {
 	public int process(List<Update> list) {
 		for (Update update : list) {
 			this.handle(() -> {
-//				Message message = update.message();
-//				if (message != null) {
-//					// Костыль, который позволяет вызвать TelegramManager.awaitMessage внутри предиката
-//					Predicate<Message> predicate = this.manager.getAwaitingMessages().remove(message.from().id());
-//					if (predicate != null) {
-//						if (!predicate.test(message)) {
-//							this.manager.getAwaitingMessages().put(message.from().id(), predicate);
-//						}
-//
-//						return;
-//					}
-//				}
-//
-//				CallbackQuery callback = update.callbackQuery();
-//				if (callback != null) {
-//					Predicate<CallbackQuery> predicate = this.manager.getAwaitingCallbackQueries().remove(callback.from().id());
-//					if (predicate != null) {
-//						if (!predicate.test(callback)) {
-//							this.manager.getAwaitingCallbackQueries().put(callback.from().id(), predicate);
-//						}
-//
-//						return;
-//					}
-//				}
-
-
 				for (AbstractHandler<?> handler : this.manager.getHandlers()) {
 					if (handler.tryHandle(update)) {
 						return;

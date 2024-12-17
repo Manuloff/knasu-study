@@ -1,10 +1,12 @@
 package me.manuloff.apps.knasu.study.data;
 
 import lombok.NonNull;
+import lombok.SneakyThrows;
 import me.saharnooby.lib.query.orm.DataClass;
 
 import javax.sql.DataSource;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -21,6 +23,14 @@ public final class UserDatabase {
 		this.source = source;
 
 		DAO.createTableIfNotExists().update(this.source);
+	}
+
+	@NonNull
+	@SneakyThrows
+	public List<Long> getUserIdsWithGroupNotNull() {
+		return DAO.select().col("user_id").whereExpr("`group` IS NOT NULL").queryAndMapAll(this.source, set -> {
+			return set.getLong(1);
+		});
 	}
 
 	@NonNull

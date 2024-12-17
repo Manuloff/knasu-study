@@ -6,8 +6,11 @@ import me.manuloff.apps.knasu.study.api.KnasuAPI;
 import me.manuloff.apps.knasu.study.api.response.TeachersResponse;
 import me.manuloff.apps.knasu.study.data.UserData;
 import me.manuloff.apps.knasu.study.data.UserStage;
+import me.manuloff.apps.knasu.study.telegram.Keyboards;
 import me.manuloff.apps.knasu.study.telegram.handler.CallbackHandler;
-import me.manuloff.apps.knasu.study.telegram.method.EMessage;
+import me.manuloff.apps.knasu.study.telegram.method.ACallback;
+import me.manuloff.apps.knasu.study.telegram.method.DMessage;
+import me.manuloff.apps.knasu.study.telegram.method.SMessage;
 import me.manuloff.apps.knasu.study.util.CalendarUtils;
 import me.manuloff.apps.knasu.study.util.DataEntry;
 
@@ -28,7 +31,10 @@ public class TeacherSelectionCallback extends CallbackHandler {
 
 		TeachersResponse.Teacher teacher = KnasuAPI.getTeachers().getByFullName(fullName);
 		if (teacher == null) {
-			EMessage.of(callback).text("Указанный преподаватель не найден, попробуй чуть позже");
+			ACallback.of(callback)
+					.text("🚨 К сожалению, выбранный вами преподаватель не найден. Пожалуйста, попробуйте позже.")
+					.showAlert(true)
+					.execute();
 			return;
 		}
 
@@ -45,9 +51,38 @@ public class TeacherSelectionCallback extends CallbackHandler {
 		data.setRecentTeachers(recentTeachers);
 		data.setStage(UserStage.TEACHER_SCHEDULE);
 
+		SMessage.of(callback).text("""
+				🗓️ Расписание преподавателя *%s* генерируется.
+				
+				1️⃣ *Переключение формата отображения*:
+				Нажмите на кнопку `День` или `Неделя`, чтобы переключаться между расписанием на один день и расписанием на всю неделю.
+				
+				2️⃣ *Просмотр текущего периода*:
+				Кнопка показывает выбранную дату или диапазон, в зависимости от выбранного формата отображения.
+				
+				3️⃣ *Навигация по расписанию*:
+				Используйте кнопки `Пред. день/неделя` и `Следующий день/неделя`, чтобы переходить к нужной дате.
+				
+				4️⃣ *Изменение параметров*:
+				Если вы внесли изменения, появится кнопка `Применить изменения`. Нажмите на нее, чтобы обновить расписание.
+				
+				📅 Чтобы перейти к расписанию конкретной даты, отправьте сообщение с нужной датой в формате `дд.мм.гггг`.
+				
+				Приятного использования! 🚀
+				""", teacher.getFullName())
+				.execute();
+
+		SMessage.of(callback).text("""
+						🌐 Для удобства просмотра расписания вы можете открыть его в браузере. Нажмите на кнопку ниже, чтобы перейти. 🔗
+						""")
+				.replyMarkup(Keyboards.openUrl("🌐 Открыть в браузере", "https://knastu.ru/teachers/schedule/" + teacher.getId() + "?day=" + CalendarUtils.getCurrentDay()))
+				.execute();
+
+		DMessage.of(callback).execute();
+
 		TeacherScheduleCommand.updateSchedule(
 				callback.from().id(),
-				callback.maybeInaccessibleMessage().messageId(),
+				-1,
 				teacher.getId(),
 				CalendarUtils.getCurrentDay(),
 				true,

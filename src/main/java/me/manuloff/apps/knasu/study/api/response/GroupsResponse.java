@@ -25,7 +25,7 @@ public final class GroupsResponse {
 	public GroupsResponse(@NonNull Document document) {
 		for (Element elementFaculty : document.body().select("div.faculty")) {
 			String facultyAbbreviation = Objects.requireNonNull(elementFaculty.select("div.faculty a").first()).attr("name");
-			String facultyName = Objects.requireNonNull(elementFaculty.select("div.faculty h4").first()).text();
+			String facultyName = Objects.requireNonNull(elementFaculty.select("div.faculty h4").first()).text().replace('(' + facultyAbbreviation + ')', "").trim();
 
 			Map<String, List<String>> map = new LinkedHashMap<>();
 
@@ -48,6 +48,13 @@ public final class GroupsResponse {
 
 			this.facultyByName.put(facultyAbbreviation, new Faculty(facultyAbbreviation, facultyName, map));
 		}
+	}
+
+	@Nullable
+	public String getFacultyByGroup(@NonNull String groupName) {
+		return this.facultyByName.values().stream().filter(faculty -> {
+			return faculty.enrollmentYearsGroups.values().stream().anyMatch(list -> list.contains(groupName));
+		}).map(faculty -> faculty.name).findFirst().orElse(null);
 	}
 
 	@NonNull

@@ -88,7 +88,7 @@ public class EducationalProgramResponse {
 	}
 
 	@Nullable
-	public String getAcademicCalendar(@NonNull String groupName) {
+	public String getAcademicCalendarUrl(@NonNull String groupName) {
 		return this.resolveValueByGroupName(groupName, this.academicCalendars);
 	}
 
@@ -123,7 +123,7 @@ public class EducationalProgramResponse {
 	}
 
 	@Nullable
-	public String getAcademicCalendar(@NonNull EnrollmentInfo enrollmentInfo) {
+	public String getAcademicCalendarUrl(@NonNull EnrollmentInfo enrollmentInfo) {
 		return this.academicCalendars.get(enrollmentInfo);
 	}
 

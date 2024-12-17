@@ -62,4 +62,17 @@ public class CalendarUtils {
 	public static String minusDays(@NonNull String date, int days) {
 		return LocalDate.parse(date, FULL_FORMATTER).minusDays(days).format(FULL_FORMATTER);
 	}
+
+	@NonNull
+	public static String getShortName(@NonNull DayOfWeek dayOfWeek) {
+		return switch (dayOfWeek) {
+			case MONDAY -> "Пн";
+			case TUESDAY -> "Вт";
+			case WEDNESDAY -> "Ср";
+			case THURSDAY -> "Чт";
+			case FRIDAY -> "Пт";
+			case SATURDAY -> "Сб";
+			case SUNDAY -> "Вс";
+		};
+	}
 }

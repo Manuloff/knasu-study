@@ -18,11 +18,61 @@ import java.util.List;
 @Getter
 public class WorkingStudyPlanResponse {
 
+	private final String methodicalMaterials;
+	private final String competencyPassport;
+	private final String literatureRegistry;
+	private final String ebsRegistry;
+	private final String softwareRegistry;
+
 	private final List<Period> periods = new LinkedList<>();
 	private final String stateExam;
 
 	public WorkingStudyPlanResponse(@NonNull Document document) {
-		Element table = document.body().selectFirst("tbody");
+		Element body = document.body();
+
+		String methodicalMaterials = null;
+		String competencyPassport = null;
+		String literatureRegistry = null;
+		String ebsRegistry = null;
+		String softwareRegistry = null;
+
+		Element filterSwitch = body.selectFirst("div.btn-group.filter-switch");
+		if (filterSwitch != null) {
+			for (Element element : filterSwitch.select("span")) {
+				if (!element.hasAttr("itemprop")) {
+					continue;
+				}
+
+				String href = parseHref(element);
+				if (href == null) continue;
+
+				switch (element.text()) {
+					case "Методические материалы" -> {
+						methodicalMaterials = href;
+					}
+					case "Паспорта компетенций" -> {
+						competencyPassport = href;
+					}
+					case "Реестр литературы" -> {
+						literatureRegistry = href;
+					}
+					case "Реестр ЭБС" -> {
+						ebsRegistry = href;
+					}
+					case "Реестр ПО" -> {
+						softwareRegistry = href;
+					}
+				}
+			}
+		}
+
+		this.methodicalMaterials = methodicalMaterials;
+		this.competencyPassport = competencyPassport;
+		this.literatureRegistry = literatureRegistry;
+		this.ebsRegistry = ebsRegistry;
+		this.softwareRegistry = softwareRegistry;
+
+		Element table = body.selectFirst("tbody");
 		assert table != null;
 
 		Period period = null;
@@ -45,7 +95,9 @@ public class WorkingStudyPlanResponse {
 
 				if (annotation == null || workingProgramDiscipline == null || period == null) continue;
 
-				period.programs.add(new Program(programName, annotation, workingProgramDiscipline));
+				String assessmentResources = parseHref(columns.get(5));
+
+				period.programs.add(new Program(programName, annotation, workingProgramDiscipline, assessmentResources));
 				continue;
 			}
 
@@ -67,8 +119,6 @@ public class WorkingStudyPlanResponse {
 				.findFirst().map(element -> element.attr("href")).orElse(null);
 	}
 
-
-
 	@Data
 	public static class Period {
 		@NonNull
@@ -86,6 +136,8 @@ public class WorkingStudyPlanResponse {
 		private final String annotation;
 		@NonNull
 		private final String workingProgramDiscipline;
+		@Nullable
+		private final String assessmentResources;
 	}
 
 }
