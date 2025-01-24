@@ -11,6 +11,7 @@ import java.time.DayOfWeek;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -84,6 +85,8 @@ public class ScheduleResponse {
 				dailySchedule.lessons.add(lesson);
 
 				for (Element element : elements) {
+					element = Objects.requireNonNull(Objects.requireNonNull(Objects.requireNonNull(element.parent()).select("b").first()).parent());
+
 					String additionalInfo = element.select("i").text();
 
 					Element subject = element.select("b").first();
