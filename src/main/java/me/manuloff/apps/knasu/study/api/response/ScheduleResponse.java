@@ -12,7 +12,6 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * @author Manuloff
@@ -99,9 +98,18 @@ public class ScheduleResponse {
 
 					// У расписания учебных групп есть только один участник - учитель,
 					// для учителя же может быть несколько групп.
-					List<String> participants = element.select("a").stream().map(Element::text).collect(Collectors.toCollection(LinkedList::new));
+					List<String> participants = new LinkedList<>();
+					Element teacherLink = element.selectFirst("a[title=Расписание преподавателя]");
+					if (teacherLink != null) {
+						participants.add(teacherLink.text());
+					} else {
+						for (Element groupLink : element.select("a[title=Расписание группы]")) {
+							participants.add(groupLink.text());
+						}
+					}
 
-					String venue = element.select("b").get(1).text();
+					Element venueLink = element.selectFirst("a[title=Расписание аудитории]");
+					String venue = venueLink != null ? venueLink.text() : "";
 
 					lesson.lessonInfos.add(new LessonInfo(startTime, endTime, additionalInfo.isEmpty() ? null : additionalInfo, shortName, fullName, type, participants, venue));
 				}

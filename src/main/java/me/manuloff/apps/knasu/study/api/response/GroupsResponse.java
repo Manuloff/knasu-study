@@ -37,7 +37,7 @@ public final class GroupsResponse {
 				List<String> groups = new LinkedList<>();
 				map.put(year, groups);
 
-				for (Element link : Objects.requireNonNull(columns.get(1).select("td.sectiontableentry1").first()).select("a")) {
+				for (Element link : columns.get(1).select("a")) {
 					UUID groupId = UUID.fromString(link.attr("href").split("/")[3]);
 					String groupName = link.text();
 
